@@ -51,6 +51,31 @@ def packto2D(f_b, h, f_h, r):
 
     return data_X, data_y
 
+# checkinig validity of a candidate function through plotting
+def check_f(x, r, func, args, n_exact=1001):
+    x_b, x_f = average_location(x, r)
+    F_b, f_h = func(x_b, x_f, args)
+    f_b, h = f_int2b(F_b, x_b)
+
+    # import matplot
+    import matplotlib.pyplot as plt
+    
+    # exact solution
+    x_exact = np.linspace(x_b[0], x_b[-1], n_exact)
+    f_exact = func(x_b, x_exact, args)[1]
+    plt.plot(x_exact, f_exact, "--k", label="exact")
+
+
+    # cell average
+    x_fb = x[1:-1]
+    plt.plot(x_fb, f_b, "ob", label="cell average")
+
+    # plotting
+    plt.title("Check f", fontsize=14)
+    plt.legend(fontsize=12)
+    plt.grid()
+    plt.show()
+
 ### Candidate functions ###
 # F_b: F at x_b (F = \int f)
 # f_h: \hat{f} = flux on edge (x_{j+1/2})
@@ -66,10 +91,10 @@ def f_sin(x_b, x_f, args):
 # f = H(x - delta) (Heaviside step)
 def f_step(x_b, x_f, args):
     delta = args
-    f_h = 
+    f_h = np.where((x_f-delta) < 0, 0, 1)
+    F_b = np.where((x_b-delta) < 0, 0, (x_b-delta))
 
-    return x_b, x_f
-
+    return F_b, f_h
 
 
 
@@ -82,15 +107,9 @@ if __name__ == "__main__":
     x = np.linspace(L_l, L_r, nx)
 
     func = f_step
-    omega = 4*np.pi
-    phi = 1
-    args = (omega, phi)
+    delta = 0.5
+    args = (delta)
 
-
-    X, y = gen_Xy(x, r, func, args)
-    
-
-
-
-
+    #check_f(x, r, func, args)
+    #X, y = gen_Xy(x, r, func, args)
 
