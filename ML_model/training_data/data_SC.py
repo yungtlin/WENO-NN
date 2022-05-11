@@ -9,9 +9,36 @@ import gen_data
 
 ### Functions ###
 # u* = (u - u_min)/(u_max - u_min)
-def normalize():
-    pass
+# U[:, :-1] = X[:, :-1]
+# U[:, -1] = y
+def normalize_SC(X, y):
+    U = np.array(X)
+    U[:, -1] = y.reshape(-1)
+    u_max = np.max(U, axis=1)
+    u_min = np.min(U, axis=1) 
+    du = u_max - u_min
 
+    ## remove constant extrapolation ##
+    tolerance = 1e-10
+    idx_0 = np.argwhere(du < tolerance)
+    U = np.delete(U, idx_0, 0)
+
+    # update and check
+    u_max = np.max(U, axis=1).reshape((-1, 1))
+    u_min = np.min(U, axis=1).reshape((-1, 1))
+    du = u_max - u_min
+    idx_0 = np.argwhere(du < tolerance)
+    if len(idx_0) != 0:
+        raise ValueError("Constants Are Still Existed After Removal")
+
+    U_sc = (U - u_min)/(u_max - u_min)
+
+    return U_sc
+
+def gen_X_sc(x, r, func, args):
+    X, y = gen_data.gen_Xy(x, r, func, args)
+    X_sc = normalize_SC(X, y)
+    return X_sc
 
 ### SC ####
 def data_SC(path):
@@ -24,15 +51,8 @@ def data_SC(path):
     delta = 0
     args = (omega, delta)
     
-    x, y = np.mgrid[0:5, 2:8]
-    #X, y = gen_data.gen_Xy(x, r, func, args)
-    #X = X[:, :-1]
-    X = np.array([x.ravel(), y.ravel()]).T
-    tree = spatial.KDTree(X)
-    #gen_data.check_f(x, r, func, args)
+    X = gen_X_sc(x, r, func, args)
 
-    radius = 1
-    
 
 # testing field
 if __name__ == "__main__":
