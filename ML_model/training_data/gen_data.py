@@ -102,7 +102,7 @@ def f_sawtooth(x_b, x_f, args):
     f_h = (2*k*(x_f-delta+0.5))%2 - 1
     
     dx = (2*k*(x_b-delta+0.5))%2 - 1
-    F_b = 1/4*dx**2
+    F_b = 1/(4*k)*dx**2
 
     return F_b, f_h
 
@@ -128,13 +128,13 @@ if __name__ == "__main__":
 
     L_l = -1 # left boundary
     L_r = 1 # right boundary
-    nx = 18
+    nx = 101
     x = np.linspace(L_l, L_r, nx)
 
-    func = f_poly
-    n = 5
+    func = f_sawtooth
+    k = 5
     delta = 0
-    args = (n, delta)
+    args = (k, delta)
 
     x_b, x_f = average_location(x, r)
     F_b, f_h = func(x_b, x_f, args)
