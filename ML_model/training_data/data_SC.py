@@ -64,14 +64,15 @@ def sign_tanh(x, r, args):
     f_h = sign*f_h
     return F_b, f_h
 
-#
+# sin + step
+# f = alph*sin + step
 def mix_sin_stp(x, r, args):
-    args_sin, args_sstp = args
+    alpha, args_sin, args_sstp = args
     F_bsin, f_hsin = gen_data.f_sin(x, r, args_sin)
     F_bstp, f_hstp = sign_step(x, r, args_sstp)
 
-    F_b = F_bsin + F_bstp
-    f_h = f_hsin + f_hstp
+    F_b = alpha*F_bsin + F_bstp
+    f_h = alpha*f_hsin + f_hstp
 
     return F_b, f_h
 
@@ -82,11 +83,13 @@ def data_SC(path):
     r_min = 1e-3 # data minimum distance
 
     dataU = init_data_U(r, r_min)
-    #data_SC_sin(dataU, r) # ~17,000 # sin
-    #data_SC_sw(dataU, r) # ~9,000 # sawtooth (26,000)
-    #data_SC_step(dataU, r) # ~1,000 # step (27,000)
-    #data_SC_tanh(dataU, r) # ~8,000 # tanh (34,000)
-    data_SC_sin_stp(dataU, r) # sin + step
+    
+    
+    data_SC_sin(dataU, r) # ~17,000 # sin
+    data_SC_sw(dataU, r) # ~9,000 # sawtooth (26,000)
+    data_SC_step(dataU, r) # ~1,000 # step (27,000)
+    data_SC_tanh(dataU, r) # ~8,000 # tanh (34,000)
+    data_SC_sin_stp(dataU, r) # ~22,000 sin + step (22,000)
 
 # randomly add sinusoidal function initialize data_U
 def init_data_U(r, r_min):
@@ -122,14 +125,16 @@ def data_SC_sin(dataU, r):
         exp_k = (exp_max-exp_min)*np.random.random_sample() + exp_min
         k = np.exp(exp_k)
         omega = 2*np.pi*k
-        print("Sinusoidal (k:%.5f):"%k)
 
+        X_pack = np.zeros((0, 6))
+        print("Sinusoidal (k:%.5f):"%k)
         for shift in range(n_shift):
             delta = np.random.random_sample()/k
             args = (omega, delta)
             
             X = gen_X_sc(x, r, func, args)
-            dataU.add(X)
+            X_pack = np.append(X_pack, X, axis=0)
+        dataU.add(X_pack)
 
 
 ## Sawtooth ##
@@ -150,6 +155,7 @@ def data_SC_sw(dataU, r):
             exp_k = (exp_max-exp_min)*np.random.random_sample() + exp_min 
             k = np.exp(exp_k)
 
+            X_pack = np.zeros((0, 6))
             print("Sawtooth (sign:%i, k:%.5f):"%(sign, k))
             for shift in range(n_shift):
                 delta = 2*dx*np.random.random_sample() - dx
@@ -157,8 +163,8 @@ def data_SC_sw(dataU, r):
                 args = (sign, args_sw)
 
                 X = gen_X_sc(x, r, func, args)
-                dataU.add(X)
-
+                X_pack = np.append(X_pack, X, axis=0)
+            dataU.add(X_pack)
 ## Step ##
 def data_SC_step(dataU, r):
     func = sign_step
@@ -170,6 +176,8 @@ def data_SC_step(dataU, r):
 
     # flipping sign
     for sign in [1, -1]:
+
+        X_pack = np.zeros((0, 6))
         print("Step (sign:%i):"%(sign))
         for shift in range(n_shift):
             delta = 2*dx*np.random.random_sample() - dx
@@ -177,7 +185,8 @@ def data_SC_step(dataU, r):
             args = (sign, args_stp)
 
             X = gen_X_sc(x, r, func, args)
-            dataU.add(X)
+            X_pack = np.append(X_pack, X, axis=0)
+        dataU.add(X_pack)
 
 ## Hyperbolic Tangent ##
 def data_SC_tanh(dataU, r):
@@ -197,6 +206,7 @@ def data_SC_tanh(dataU, r):
             exp_k = (exp_max-exp_min)*np.random.random_sample() + exp_min 
             k = np.exp(exp_k)
 
+            X_pack = np.zeros((0, 6))
             print("Hyperbolic Tangent (sign:%i, k:%.5f):"%(sign, k))
             for shift in range(n_shift):
                 delta = 2*dx*np.random.random_sample() - dx
@@ -205,26 +215,52 @@ def data_SC_tanh(dataU, r):
                 x = x_base - delta
             
                 X = gen_X_sc(x, r, func, args)
-                dataU.add(X)
+                X_pack = np.append(X_pack, X, axis=0)
+            dataU.add(X_pack)
 
 # Sinusoidal + Step
+# f = alph*sin + step
 def data_SC_sin_stp(dataU, r):
     func = mix_sin_stp
-
+    L = 1
     n_data = 5 # data per shift (fixed for optimal sampling)
-    x = np.linspace(-0.5, 0.5, n_data+2*r)
+    x = np.linspace(-0.5*L, 0.5*L, n_data+2*r)
+    dx = np.mean(x[1:] - x[:-1])/2
 
-    sign = 1
+    n_alpha = 20
+    n_k = 5
+    n_delta = 5
+    n_shift = 5
 
-    omega = np.pi
-    delta = 0
+    for count_alpha in range(n_alpha):
+        alp_max = -1
+        alp_min = -5
+        exp_alp = (alp_max-alp_min)*np.random.random_sample() + alp_min 
+        alpha = np.exp(exp_alp)
+        
+        for count_k in range(n_k):
+            k_max = 1.5
+            k_min = -2
+            exp_k = (k_max-k_min)*np.random.random_sample() + k_min 
+            k = np.exp(exp_k)
 
-    args_sin = (omega, delta)
-    args_sstp = (sign, (0))
-    args = (args_sin, args_sstp)
+            X_pack = np.zeros((0, 6))
+            print("sin + step (alpha:%.5f, k:%.5f):"%(alpha, k))
+            for count_delta in range(n_delta):
+                omega = 2*np.pi*k
+                delta = L/k*np.random.random_sample()
+                args_sin = (omega, delta)
 
-    gen_data.check_f(x, r, func, args)
 
+                for sign in [1, -1]:            
+                    for count_shift in range(n_shift):
+                        shift = 2*dx*np.random.random_sample() - dx
+                        args_sstp = (sign, (shift))
+
+                        args = (alpha, args_sin, args_sstp)
+                        X = gen_X_sc(x, r, func, args)
+                        X_pack = np.append(X_pack, X, axis=0)
+            dataU.add(X_pack)
 
 # testing field
 if __name__ == "__main__":
