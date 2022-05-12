@@ -18,8 +18,8 @@ def gen_X_sc(x, r, func, args):
 def normalize_SC(X, y):
     U = np.array(X)
     U[:, -1] = y.reshape(-1)
-    u_max = np.max(U, axis=1)
-    u_min = np.min(U, axis=1) 
+    u_max = np.max(U[:,:-1], axis=1)
+    u_min = np.min(U[:,:-1], axis=1) 
     du = u_max - u_min
 
     ## remove constant extrapolation ##
@@ -28,8 +28,8 @@ def normalize_SC(X, y):
     U = np.delete(U, idx_0, 0)
 
     # update and check
-    u_max = np.max(U, axis=1).reshape((-1, 1))
-    u_min = np.min(U, axis=1).reshape((-1, 1))
+    u_max = np.max(U[:,:-1], axis=1).reshape((-1, 1))
+    u_min = np.min(U[:,:-1], axis=1).reshape((-1, 1))
     du = u_max - u_min
     idx_0 = np.argwhere(du < tolerance)
     if len(idx_0) != 0:
