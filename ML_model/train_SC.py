@@ -1,6 +1,9 @@
 # Trains WENO-NN by Stevens and Colonius 
 ### Libraries ###
-#import tensorflow as tf
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+
 import numpy as np
 
 ### Data ###
@@ -64,14 +67,59 @@ def WENO5_C(omega):
 if __name__ == "__main__":
     folder = "training_data/"
     file = "data_SC_0.npy"
-    X, y = get_dataX(folder+file)
+    f_bar, y = get_dataX(folder+file)
     
-    c_tilde = WENO5_getC(X)
+    nf = f_bar.shape[1]
+    c_tilde = WENO5_getC(f_bar)
 
-    import matplotlib.pyplot as plt
-    f_weno = np.sum(c_tilde*X, axis=1)
-    plt.plot(y, f_weno, "ob", markersize=0.2, label="WENO5-JS")
-    plt.xlabel("exact")
-    plt.grid()
-    plt.show()
 
+
+    # model inputs
+    X = {"c_tilde":c_tilde, "f_bar":f_bar},
+
+    ## model ##
+    # ref: https://www.tensorflow.org/guide/keras/functional
+
+    # WENO5-JS coefficients
+    c_input = keras.Input(shape=(nf,), name="c_tilde")
+    
+    # Neural Network
+    NN_h1 = layers.Dense(3, activation="sigmoid", name="hidden1")
+    NN_h2 = layers.Dense(3, activation="sigmoid", name="hidden2")
+    NN_h3 = layers.Dense(3, activation="sigmoid", name="hidden3")
+    NN_out = layers.Dense(nf, activation="sigmoid", name="output")
+    c_hat = NN_out(NN_h3(NN_h2(NN_h1(c_input))))
+
+    # Affine Transformation 
+    sum_c = tf.reduce_sum(c_hat, axis=1, keepdims=True)
+    c_hat_s = c_hat - sum_c/nf # L2-optimal
+    c = c_hat_s + c_input
+
+    # Inner product
+    f_input = keras.Input(shape=(nf,), name="f_bar")
+    outputs = layers.Dot(axes=1)([c, f_input]) # WENO-NN output
+
+    # model wrap up
+    model = keras.Model(inputs=[c_input, f_input], outputs=outputs, name="WENO-NN")
+
+    
+    model.summary()
+    # plot networks
+    keras.utils.plot_model(model, "WENO-NN.png")
+
+    
+    # training solver
+    model.compile(
+        loss=keras.losses.MeanSquaredError(),
+        optimizer=keras.optimizers.Adam(learning_rate=0.01),
+        metrics=[keras.metrics.RootMeanSquaredError()],
+    )
+    
+    history = model.fit(X, y, batch_size=64, epochs=10, validation_split=0.2)
+
+    # compare 
+    test_scores = model.evaluate(X, y, verbose=2)
+    f_weno = np.sum(c_tilde*f_bar, axis=1)
+    dev = f_weno - y
+    ref_loss = np.sqrt(np.mean(dev*dev))
+    print("WENO5-JS rmse:", ref_loss)
