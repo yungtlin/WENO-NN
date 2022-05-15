@@ -16,6 +16,15 @@ if __name__ == "__main__":
     f_weno = np.sum(c_tilde*X, axis=1)
     plt.plot(y, f_weno, "ob", markersize=0.2, label="WENO5-JS", alpha=1)
 
+
+        
+    test_scores = model.evaluate(X, y, verbose=2)
+    f_weno = np.sum(c_tilde*f_bar, axis=1)
+    dev = f_weno - y
+    ref_loss = np.sqrt(np.mean(dev*dev))
+    print("WENO5-JS rmse:", ref_loss)
+
+
     # slope = 1
     n_one = 101
     plt.plot(x, x, "--k", linewidth=1)
@@ -31,3 +40,5 @@ if __name__ == "__main__":
     plt.legend(fontsize=14)
     plt.grid()
     plt.show()
+
+

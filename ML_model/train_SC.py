@@ -11,11 +11,17 @@ def get_dataX(path):
     with open(path, "rb") as f:
         print("Loading data: %s"%path)
         dataX = np.load(f)
+    
+    # shuffle data 
+    np.random.shuffle(dataX)
+
     X = dataX[:, :-1]
     y = dataX[:, -1]
+
     return X, y
 
 ### WENO ###
+# compute WENO5-JS coefficients
 def WENO5_getC(f_tilde):
     # check dimension (r=3)
     r = 3
@@ -27,7 +33,7 @@ def WENO5_getC(f_tilde):
 
     return C
 
-
+# nonlinear weights
 def WENO5_omega(f, epsilon=1e-6):
     nX = f.shape[0]
 
@@ -50,6 +56,7 @@ def WENO5_omega(f, epsilon=1e-6):
 
     return omega
 
+# WENO5 coefficients
 def WENO5_C(omega):
     nX = omega.shape[0]
 
@@ -63,20 +70,8 @@ def WENO5_C(omega):
 
     return C
 
-
-if __name__ == "__main__":
-    folder = "training_data/"
-    file = "data_SC_0.npy"
-    f_bar, y = get_dataX(folder+file)
-    
-    nf = f_bar.shape[1]
-    c_tilde = WENO5_getC(f_bar)
-
-
-
-    # model inputs
-    X = {"c_tilde":c_tilde, "f_bar":f_bar},
-
+### model ###
+def get_model():
     ## model ##
     # ref: https://www.tensorflow.org/guide/keras/functional
 
@@ -84,10 +79,10 @@ if __name__ == "__main__":
     c_input = keras.Input(shape=(nf,), name="c_tilde")
     
     # Neural Network
-    NN_h1 = layers.Dense(3, activation="sigmoid", name="hidden1")
-    NN_h2 = layers.Dense(3, activation="sigmoid", name="hidden2")
-    NN_h3 = layers.Dense(3, activation="sigmoid", name="hidden3")
-    NN_out = layers.Dense(nf, activation="sigmoid", name="output")
+    NN_h1 = layers.Dense(3, activation="sigmoid", use_bias=False, name="hidden1")
+    NN_h2 = layers.Dense(3, activation="sigmoid", use_bias=False, name="hidden2")
+    NN_h3 = layers.Dense(3, activation="sigmoid", use_bias=False, name="hidden3")
+    NN_out = layers.Dense(nf, activation="sigmoid", use_bias=False, name="dc_tilde")
     c_hat = NN_out(NN_h3(NN_h2(NN_h1(c_input))))
 
     # Affine Transformation 
@@ -102,24 +97,79 @@ if __name__ == "__main__":
     # model wrap up
     model = keras.Model(inputs=[c_input, f_input], outputs=outputs, name="WENO-NN")
 
-    
-    model.summary()
-    # plot networks
-    keras.utils.plot_model(model, "WENO-NN.png")
-
-    
-    # training solver
+    # set solver
     model.compile(
         loss=keras.losses.MeanSquaredError(),
         optimizer=keras.optimizers.Adam(learning_rate=0.01),
         metrics=[keras.metrics.RootMeanSquaredError()],
     )
-    
-    history = model.fit(X, y, batch_size=64, epochs=10, validation_split=0.2)
 
-    # compare 
-    test_scores = model.evaluate(X, y, verbose=2)
-    f_weno = np.sum(c_tilde*f_bar, axis=1)
-    dev = f_weno - y
-    ref_loss = np.sqrt(np.mean(dev*dev))
-    print("WENO5-JS rmse:", ref_loss)
+    model.summary()
+
+    return model
+
+# saves the neural networks weights in a binary file
+def save_model(path, model):
+    print("Saving model: %s"%path)
+    file = open(path, "wb")
+
+    # neural networks indices in the tf model
+    nn_list = list(range(1, 5))
+
+    # total number of layers (included output) 
+    nn_count = len(nn_list)
+    writeline(file, np.int32, nn_count)
+
+    # loops over specified layers
+    for nn_idx in nn_list:
+        nn_layer = model.layers[nn_idx].get_weights()
+        weight = nn_layer[0]
+        w_dim = weight.shape
+        # writes weights dimension
+        writeline(file, np.int32, w_dim)
+        # writes weights
+        writeline(file, np.float32, weight)
+
+    file.close()
+
+# write data to the bin file
+def writeline(file, dtype, data):
+    data_np = np.array(data, dtype=dtype)
+    file.write(data_np.tobytes())
+
+
+if __name__ == "__main__":
+    folder = "training_data/"
+    file = "data_SC_0.npy"
+    f_bar, y = get_dataX(folder+file)
+    
+    nf = f_bar.shape[1]
+    c_tilde = WENO5_getC(f_bar)
+
+    # model inputs
+    X = {"c_tilde":c_tilde, "f_bar":f_bar},
+
+    # get NN model
+    model = get_model()
+
+    # plot networks
+    #keras.utils.plot_model(model, "test_WENO-NN.png")
+
+    history = model.fit(X, y, batch_size=80, epochs=50, validation_split=0.2)
+
+    path = "test_model.bin"
+    save_model(path, model)
+
+    import matplotlib.pyplot as plt
+    mse_train = history.history["root_mean_squared_error"]
+    mse_valid = history.history["val_root_mean_squared_error"]
+
+    plt.plot(mse_train, "b", label="training")
+    plt.plot(mse_valid, "r", label="validation")
+    
+    plt.ylabel("Mean square Error", fontsize=14)
+    plt.xlabel("Epochs", fontsize=14)
+    plt.legend()
+    plt.grid()
+    plt.show()
+
