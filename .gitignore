@@ -1,3 +1,10 @@
+# python libs
 *.pyc
 __pycache__/
+
+# testing cases
 test*
+
+# C++ build & run.sh
+build/
+run.sh
