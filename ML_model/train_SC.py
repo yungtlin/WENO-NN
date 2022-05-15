@@ -82,7 +82,7 @@ def get_model():
     NN_h1 = layers.Dense(3, activation="sigmoid", use_bias=False, name="hidden1")
     NN_h2 = layers.Dense(3, activation="sigmoid", use_bias=False, name="hidden2")
     NN_h3 = layers.Dense(3, activation="sigmoid", use_bias=False, name="hidden3")
-    NN_out = layers.Dense(nf, activation="sigmoid", use_bias=False, name="dc_tilde")
+    NN_out = layers.Dense(nf, activation="linear", use_bias=False, name="dc_tilde")
     c_hat = NN_out(NN_h3(NN_h2(NN_h1(c_input))))
 
     # Affine Transformation 
@@ -137,7 +137,6 @@ def writeline(file, dtype, data):
     data_np = np.array(data, dtype=dtype)
     file.write(data_np.tobytes())
 
-
 if __name__ == "__main__":
     folder = "training_data/"
     file = "data_SC_0.npy"
@@ -155,7 +154,16 @@ if __name__ == "__main__":
     # plot networks
     #keras.utils.plot_model(model, "test_WENO-NN.png")
 
-    history = model.fit(X, y, batch_size=80, epochs=50, validation_split=0.2)
+    history = model.fit(X, y, batch_size=80, epochs=150, validation_split=0.2)
+
+
+#    test model with WENO5-JS
+#    test_scores = model.evaluate(X, y, verbose=2)
+#    f_weno = np.sum(c_tilde*f_bar, axis=1)
+#    dev = f_weno - y
+#    ref_loss = np.sqrt(np.mean(dev*dev))
+#    print("WENO5-JS rmse:", ref_loss)
+
 
     path = "test_model.bin"
     save_model(path, model)
