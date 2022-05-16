@@ -23,6 +23,8 @@ Solver::Solver(int_type nu, value_type* xlim, int_type nx){
     __gamma = mesh.get_gamma();
     __h = mesh.get_h();
     set_matrices();
+
+    // WENO
 }
 
 // Starting solver from reading an existed simulation
@@ -240,8 +242,8 @@ void Solver::WENO_p(){
         for(int i = 2; i < __nx - 2; i++){
             fm2 = __Ep[j].value[i-2];
             fm1 = __Ep[j].value[i-1];
-            f0 = __Ep[j].value[i];
-            fp1= __Ep[j].value[i+1];
+            f0  = __Ep[j].value[i];
+            fp1 = __Ep[j].value[i+1];
             fp2 = __Ep[j].value[i+2];
 
             // flux reconstruction
@@ -322,8 +324,8 @@ void Solver::WENO_m(){
         // get the WENO flux
         for(int i = 1; i < __nx - 3; i++){
             fm1 = __Em[j].value[i-1];
-            f0 = __Em[j].value[i];
-            fp1= __Em[j].value[i+1];
+            f0  = __Em[j].value[i];
+            fp1 = __Em[j].value[i+1];
             fp2 = __Em[j].value[i+2];
             fp3 = __Em[j].value[i+3];
 

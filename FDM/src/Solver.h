@@ -29,6 +29,7 @@ private:
     value_type __h; // mesh size (uniform)
     value_type __gamma;
     value_type __CFL;
+    bool __is_WENO_NN;
 
     Vec1D __p, __c; // pressure and acoustic speed
     Vec1D *__U_tmp, *__f;
