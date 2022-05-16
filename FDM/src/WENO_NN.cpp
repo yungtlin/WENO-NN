@@ -26,6 +26,7 @@ void WENO_NN::load_bin(const char* path){
     if(fp != NULL){
         printf("Loading NN model: %s\n", path);
         load_header(fp);
+        load_weights(fp);
     }
     else{
         printf("FILE PATH: %s CANNOT BE LOADED\n", path);
@@ -33,10 +34,18 @@ void WENO_NN::load_bin(const char* path){
     }
 }
 
-// Read number of nn and allocates memory space
+// Loads the number of nn and allocates memory space
 void WENO_NN::load_header(FILE* fp){
     fread(&__nn_count, sizeof(int), 1, fp);
-    
+    __weights = new Vec2D[__nn_count];
 }
 
+// Loads the weights of neural network
+void WENO_NN::load_weights(FILE* fp){
+    int dim[2];
 
+    int idx_nn = 0;
+
+    fread(&dim, sizeof(int), 2, fp);
+    __weights[idx_nn].set(dim[0], dim[1]);
+}

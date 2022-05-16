@@ -25,19 +25,21 @@ class WENO_NN
 {
 private:
     int __nn_count;
-    float ***weights;
+    Vec2D *__weights;
 
 public:
     WENO_NN();
     ~WENO_NN(){
         if (__nn_count > 0){
-
+            delete[] __weights;
         }
     };
 
     // Loading Bin
     void load_bin(const char* path);
     void load_header(FILE* fp);
+    void load_weights(FILE* fp);
+
     //value_type predict();
 };
 

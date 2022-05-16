@@ -80,3 +80,27 @@ value_type dot(const Vec1D& A, const Vec1D& B);
 // Vec1D Related Operators
 // Constant operations
 Vec1D operator*(const value_type& b, const Vec1D& A);
+
+
+///////////
+// Vec2D //
+///////////
+class Vec2D
+{
+public:
+    // Attribute
+    float** v;
+    int ny, nx;
+
+    Vec2D():ny(0), nx(0){};
+    ~Vec2D(){
+        if (ny > 0){
+            for(int i = 0; i < ny; i++){
+                free(v[i]);
+            }
+            free(v);
+        }
+    }
+    //
+    void set(int ny_in, int nx_in);
+};

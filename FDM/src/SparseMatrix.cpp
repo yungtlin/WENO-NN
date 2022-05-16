@@ -227,3 +227,18 @@ Vec1D operator*(const value_type& b, const Vec1D& A){
 }
 
 
+///////////
+// Vec2D //
+///////////
+// Allocate 2D array
+void Vec2D::set(int ny_in, int nx_in){
+    ny = ny_in;
+    nx = nx_in;
+
+    v = (float**) malloc(ny*sizeof(float*));
+
+    for (int i=0; i < ny; i++){
+        v[i] = (float*) malloc(nx*sizeof(float));
+    }
+}
+
