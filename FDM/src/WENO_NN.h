@@ -25,12 +25,13 @@ class WENO_NN
 {
 private:
     int __nn_count;
+    float ***weights;
 
 public:
     WENO_NN();
     ~WENO_NN(){
         if (__nn_count > 0){
-            printf("remove...\n");
+
         }
     };
 
@@ -38,6 +39,5 @@ public:
     void load_bin(const char* path);
     void load_header(FILE* fp);
     //value_type predict();
-
 };
 
