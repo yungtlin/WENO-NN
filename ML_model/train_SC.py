@@ -71,7 +71,7 @@ def WENO5_C(omega):
     return C
 
 ### model ###
-def get_model():
+def get_model(nf=5):
     ## model ##
     # ref: https://www.tensorflow.org/guide/keras/functional
 
@@ -154,18 +154,9 @@ if __name__ == "__main__":
     # plot networks
     #keras.utils.plot_model(model, "test_WENO-NN.png")
 
-    history = model.fit(X, y, batch_size=80, epochs=150, validation_split=0.2)
+    history = model.fit(X, y, batch_size=80, epochs=3, validation_split=0.2)
 
-
-#    test model with WENO5-JS
-#    test_scores = model.evaluate(X, y, verbose=2)
-#    f_weno = np.sum(c_tilde*f_bar, axis=1)
-#    dev = f_weno - y
-#    ref_loss = np.sqrt(np.mean(dev*dev))
-#    print("WENO5-JS rmse:", ref_loss)
-
-
-    path = "test_model.bin"
+    path = "test_model_2.bin"
     save_model(path, model)
 
     import matplotlib.pyplot as plt
@@ -180,4 +171,3 @@ if __name__ == "__main__":
     plt.legend()
     plt.grid()
     plt.show()
-

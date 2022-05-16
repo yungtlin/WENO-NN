@@ -64,6 +64,12 @@ def actf_sigmoid(x):
 def actf_linear(x):
     return x
 
+def L2_norm(a, b):
+    dev = a - b
+    err_L2 = np.sqrt(np.mean(dev*dev))
+    return err_L2
+
+
 if __name__ == "__main__":
     folder = "training_data/"
     file = "data_SC_0.npy"
@@ -73,13 +79,14 @@ if __name__ == "__main__":
     c_tilde = WENO5_getC(f_bar)
     f_weno = np.sum(c_tilde*f_bar, axis=1)
     plt.plot(y, f_weno, "ob", markersize=0.2, label="WENO5-JS", alpha=1)
+    print("WENO5-JS error: %.3e"%(L2_norm(f_weno, y)))
 
     # Read from bin file:
     path = "test_model.bin"
     weights = read_model_test(path)
     f_NN = model_predict(weights, c_tilde, f_bar )
     plt.plot(y, f_NN, "or", markersize=0.2, label="WENO-NN", alpha=1)
-
+    print("WENO-NN error: %.3e"%(L2_norm(f_NN, y)))
 
     # slope = 1
     n_one = 101
@@ -98,5 +105,3 @@ if __name__ == "__main__":
 
     plt.grid()
     plt.savefig("scatter_f.png")
-
-
