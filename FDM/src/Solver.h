@@ -17,6 +17,7 @@
 
 #include "SparseMatrix.h"
 #include "Mesh.h"
+#include "WENO_NN.h"
 
 
 //////////////
@@ -35,8 +36,10 @@ private:
     Vec1D *__U_tmp, *__f;
     Vec1D *__Ep, *__Em;
 
+
 public:
     Solution mesh;
+    WENO_NN __weno_nn;
 
     Solver(int_type nu, value_type* xlim, int_type nx);
     Solver(char* path);
@@ -77,6 +80,9 @@ public:
     void WENO_flux();
     void WENO_p(); // plus direction
     void WENO_m(); // minus direction
+
+    // WENO-NN //
+    void init_NN(const char* path);
 
     // Saving
     void save_case(const char* path);

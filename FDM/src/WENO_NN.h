@@ -14,9 +14,30 @@
 // Libraries //
 ///////////////
 #include <math.h>
+#include <stdio.h>
 
 #include "SparseMatrix.h"
 
-/////////////////
-// Subfunction //
-/////////////////
+//////////////
+// PCSolver //
+//////////////
+class WENO_NN
+{
+private:
+    int __nn_count;
+
+public:
+    WENO_NN();
+    ~WENO_NN(){
+        if (__nn_count > 0){
+            printf("remove...\n");
+        }
+    };
+
+    // Loading Bin
+    void load_bin(const char* path);
+    void load_header(FILE* fp);
+    //value_type predict();
+
+};
+

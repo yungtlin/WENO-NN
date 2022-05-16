@@ -24,7 +24,8 @@ Solver::Solver(int_type nu, value_type* xlim, int_type nx){
     __h = mesh.get_h();
     set_matrices();
 
-    // WENO
+    // WENO-NN related
+    __is_WENO_NN = false;
 }
 
 // Starting solver from reading an existed simulation
@@ -375,20 +376,13 @@ void Solver::WENO_m(){
     } 
 }
 
-/*
-// For error/residual estimation by state
-value_type PCSolver::solver_err(const Vec1D& u_new, const Vec1D& u_old){
-    value_type err_max = 0, err;
-    int_type size = u_new.__size;
-
-    for(int i = 0; i < size; i++){
-        err = fabs(u_new.__value[i] - u_old.__value[i])/(__u_ref * __dt);
-        err_max = fmax(err_max, err);
-    }
-
-    return err_max;
+// WENO-NN //
+void Solver::init_NN(const char* path){
+    __is_WENO_NN = true;
+    __weno_nn.load_bin(path);
 }
-*/
+
+// File I/O
 void Solver::save_case(const char* path){
     mesh.save_solution(path);
 }

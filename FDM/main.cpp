@@ -21,9 +21,9 @@ int main(int argc, char *argv[])
     value_type CFL = 0.8, T = 1.8;
 
     Solver solver = Solver(nu, xlim, nx);
-    
-    // 
-    //solver.init_NN();
+
+    // WENO-NN
+    solver.init_NN("../ML_model/test_model.bin");
 
     //solver.run(CFL, T);
 
