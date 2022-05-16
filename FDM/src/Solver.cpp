@@ -61,7 +61,7 @@ void Solver::run(value_type CFL, value_type T){
     int iteration = 0;
     value_type dt; // time step size
 
-    while(t < T){
+    while(t < T){ 
         dt = get_dt();
         // close to the target time
         if (T - t < dt){
@@ -74,7 +74,7 @@ void Solver::run(value_type CFL, value_type T){
         t += dt;
         iteration++;
         printf("Iteration: %i, t: %f \n", iteration, t);
-    }
+    } 
 }
 
 
@@ -211,9 +211,8 @@ void Solver::WENO_flux(){
 void Solver::WENO_p(){
     Vec1D f = Vec1D(__nx - 1);
 
-    value_type fh_1, fh_2, fh_3;
     value_type fm2, fm1, f0, fp1, fp2;
-    value_type c1[3], c2[3], c3[3];
+    value_type c1[3], c2[3], c3[3], C[5];
     value_type gamma1, gamma2, gamma3;
     value_type beta1, beta2, beta3;
     value_type sigma1, sigma2, sigma3;
@@ -241,16 +240,12 @@ void Solver::WENO_p(){
     for(int j = 0; j < __nu; j++){
         // get the WENO flux
         for(int i = 2; i < __nx - 2; i++){
+
             fm2 = __Ep[j].value[i-2];
             fm1 = __Ep[j].value[i-1];
             f0  = __Ep[j].value[i];
             fp1 = __Ep[j].value[i+1];
             fp2 = __Ep[j].value[i+2];
-
-            // flux reconstruction
-            fh_1 = c1[0]*fm2 + c1[1]*fm1 + c1[2]*f0;
-            fh_2 = c2[0]*fm1 + c2[1]*f0  + c2[2]*fp1;
-            fh_3 = c3[0]*f0  + c3[1]*fp1 + c3[2]*fp2;
 
             // smoothness indicator
             a = (fm2 - 2*fm1 + f0);
@@ -282,7 +277,14 @@ void Solver::WENO_p(){
             omega2 = sigma2 / a; 
             omega3 = sigma3 / a;
 
-            f.value[i] = omega1*fh_1 + omega2*fh_2 + omega3*fh_3;
+            // Coefficients
+            C[0] = c1[0]*omega1;
+            C[1] = c1[1]*omega1 + c2[0]*omega2;
+            C[2] = c1[2]*omega1 + c2[1]*omega2 + c3[0]*omega3;
+            C[3] = c2[2]*omega2 + c3[1]*omega3;
+            C[4] = c3[2]*omega3;
+
+            f.value[i] = C[0]*fm2 + C[1]*fm1 + C[2]*f0 + C[3]*fp1 + C[4]*fp2;
         }
         // compute the flux difference
         for(int i = 3; i < __nx - 2; i++){
@@ -296,7 +298,7 @@ void Solver::WENO_m(){
 
     value_type fh_1, fh_2, fh_3;
     value_type fm1, f0, fp1, fp2, fp3;
-    value_type c1[3], c2[3], c3[3], c[5];
+    value_type c1[3], c2[3], c3[3], c[5], C[5];
     value_type gamma1, gamma2, gamma3;
     value_type beta1, beta2, beta3;
     value_type sigma1, sigma2, sigma3;
@@ -365,7 +367,14 @@ void Solver::WENO_m(){
             omega2 = sigma2 / a; 
             omega3 = sigma3 / a;
 
-            f.value[i] = omega1*fh_1 + omega2*fh_2 + omega3*fh_3;
+            // Coefficients
+            C[0] = c1[0]*omega1;
+            C[1] = c1[1]*omega1 + c2[0]*omega2;
+            C[2] = c1[2]*omega1 + c2[1]*omega2 + c3[0]*omega3;
+            C[3] = c2[2]*omega2 + c3[1]*omega3;
+            C[4] = c3[2]*omega3;
+
+            f.value[i] = C[0]*fm1 + C[1]*f0 + C[2]*fp1 + C[3]*fp2 + C[4]*fp3;
         }
         // compute the flux difference
         
