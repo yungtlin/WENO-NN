@@ -296,7 +296,7 @@ void Solver::WENO_m(){
 
     value_type fh_1, fh_2, fh_3;
     value_type fm1, f0, fp1, fp2, fp3;
-    value_type c1[3], c2[3], c3[3];
+    value_type c1[3], c2[3], c3[3], c[5];
     value_type gamma1, gamma2, gamma3;
     value_type beta1, beta2, beta3;
     value_type sigma1, sigma2, sigma3;

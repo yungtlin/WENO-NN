@@ -44,8 +44,11 @@ void WENO_NN::load_header(FILE* fp){
 void WENO_NN::load_weights(FILE* fp){
     int dim[2];
 
-    int idx_nn = 0;
-
-    fread(&dim, sizeof(int), 2, fp);
-    __weights[idx_nn].set(dim[0], dim[1]);
+    for(int idx_nn = 0; idx_nn < __nn_count; idx_nn++){
+        fread(&dim, sizeof(int), 2, fp);
+        __weights[idx_nn].set(dim[0], dim[1]);
+        for (int j = 0; j < __weights[idx_nn].ny; j++){
+            fread(__weights[idx_nn].v[j], sizeof(float), __weights[idx_nn].nx, fp);
+        }
+    }
 }
