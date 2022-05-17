@@ -15,18 +15,18 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     // variables
-    int nu = 3, nx = 201;
+    int nu = 3, nx = 10001;
     value_type xlim[2] = {-5, 5};
     value_type gamma = 1.4;
-    value_type CFL = 0.8, T = 0.005;
+    value_type CFL = 0.8, T = 1.80;
 
     Solver solver = Solver(nu, xlim, nx);
 
     // WENO-NN
-    solver.init_NN("../ML_model/test_model.bin");
+    //solver.init_NN("../ML_model/test_model.bin");
 
     solver.run(CFL, T);
 
-    solver.save_case("data/test_weno_nx200_t1.dat");   
+    solver.save_case("data/test");   
     return 0;
 }

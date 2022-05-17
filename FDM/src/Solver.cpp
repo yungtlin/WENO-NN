@@ -20,6 +20,7 @@ Solver::Solver(int_type nu, value_type* xlim, int_type nx){
     // set inner state 
     __nu = nu; 
     __nx = nx; 
+    __t = 0;
     __gamma = mesh.get_gamma();
     __h = mesh.get_h();
     set_matrices();
@@ -57,24 +58,24 @@ void Solver::set_matrices(){
 void Solver::run(value_type CFL, value_type T){
     __CFL = CFL;
 
-    value_type t = 0; // start time
+
     int iteration = 0;
     value_type dt; // time step size
 
     printf("hi");
-    while(t < T){ 
+    while(__t < T){ 
         dt = get_dt();
         // close to the target time
-        if (T - t < dt){
-            dt = T - t;
+        if (T - __t < dt){
+            dt = T - __t;
         }
 
-        time_FE(dt);
-        //time_RK3(dt);
+        //time_FE(dt);
+        time_RK3(dt);
 
-        t += dt;
+        __t += dt;
         iteration++;
-        printf("Iteration: %i, t: %f \n", iteration, t);
+        printf("Iteration: %i, t: %f \n", iteration, __t);
     } 
 }
 
@@ -398,8 +399,31 @@ void Solver::init_NN(const char* path){
 }
 
 // File I/O
-void Solver::save_case(const char* path){
-    mesh.save_solution(path);
+void Solver::save_case(const char* header){
+    
+    std::string str_head = header;
+    // if is WENO
+    std::string str_weno;
+    if (__is_WENO_NN){
+        str_weno = "_weno";
+    }
+
+    // nx
+    std::string str_nx;
+    str_nx = "_nx" + std::to_string(__nx-1);
+
+    // t
+    std::string str_t;
+    str_t = "_t" + std::to_string(int(100*__t));
+
+    // file extension 
+    std::string str_ext = ".dat";
+    
+    // saving path
+    std::string path;
+    path = str_head + str_weno + str_nx + str_t + str_ext;
+
+    mesh.save_solution(path.c_str());
 }
 
 

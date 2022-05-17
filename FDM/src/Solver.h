@@ -30,6 +30,7 @@ private:
     value_type __h; // mesh size (uniform)
     value_type __gamma;
     value_type __CFL;
+    value_type __t;
     bool __is_WENO_NN;
 
     Vec1D __p, __c; // pressure and acoustic speed
@@ -85,7 +86,7 @@ public:
     void init_NN(const char* path);
 
     // Saving
-    void save_case(const char* path);
+    void save_case(const char* header);
 };
 
 
