@@ -26,12 +26,15 @@ class WENO_NN
 private:
     int __nn_count;
     Vec2D *__weights;
+    Vec1D *__outputs;
+    Vec1D __intput;
 
 public:
     WENO_NN();
     ~WENO_NN(){
         if (__nn_count > 0){
             delete[] __weights;
+            delete[] __outputs;
         }
     };
 
@@ -40,6 +43,14 @@ public:
     void load_header(FILE* fp);
     void load_weights(FILE* fp);
 
-    //value_type predict();
+    // activation functions
+    void activ_sigmoid(Vec1D& a);
+    void activ_linear(Vec1D& a);
+
+    // predict 
+    void predict(value_type* C);
+    // loads input C to input Vec1D
+    void load_input(value_type* C);
+    void affine_transform(Vec1D& output, value_type* C);
 };
 

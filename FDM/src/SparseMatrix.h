@@ -22,6 +22,8 @@ typedef long int int_type;
 #include <stdio.h>
 #include <stdlib.h> 
 
+class Vec2D;
+
 ///////////
 // Vec1D //
 ///////////
@@ -41,6 +43,8 @@ public:
             free(value);
         }
     };
+
+    void set(int_type size_in);
 
     void size_check(int_type size);    
     void print_value();
@@ -72,6 +76,8 @@ public:
     Vec1D operator*(const value_type& b); // c = a * b
     Vec1D operator/(const value_type& b); // c = a * b
 
+    // Vec2D related
+    void matmul(Vec1D& a, Vec2D& B);
 };
 
 // Vec1D Related Operations
@@ -103,4 +109,5 @@ public:
     }
     //
     void set(int ny_in, int nx_in);
+
 };

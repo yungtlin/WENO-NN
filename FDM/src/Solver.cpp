@@ -61,6 +61,7 @@ void Solver::run(value_type CFL, value_type T){
     int iteration = 0;
     value_type dt; // time step size
 
+    printf("hi");
     while(t < T){ 
         dt = get_dt();
         // close to the target time
@@ -68,8 +69,8 @@ void Solver::run(value_type CFL, value_type T){
             dt = T - t;
         }
 
-        //time_FE(dt);
-        time_RK3(dt);
+        time_FE(dt);
+        //time_RK3(dt);
 
         t += dt;
         iteration++;
@@ -284,6 +285,11 @@ void Solver::WENO_p(){
             C[3] = c2[2]*omega2 + c3[1]*omega3;
             C[4] = c3[2]*omega3;
 
+            // WENO-NN
+            if (__is_WENO_NN){
+                __weno_nn.predict(C);
+            }
+
             f.value[i] = C[0]*fm2 + C[1]*fm1 + C[2]*f0 + C[3]*fp1 + C[4]*fp2;
         }
         // compute the flux difference
@@ -332,11 +338,6 @@ void Solver::WENO_m(){
             fp2 = __Em[j].value[i+2];
             fp3 = __Em[j].value[i+3];
 
-            // flux reconstruction
-            fh_1 = c1[0]*fm1 + c1[1]*f0  + c1[2]*fp1;
-            fh_2 = c2[0]*f0  + c2[1]*fp1 + c2[2]*fp2;
-            fh_3 = c3[0]*fp1 + c3[1]*fp2 + c3[2]*fp3;
-
             // smoothness indicator
             a = (fm1 - 2*f0 + fp1);
             b = (fm1 - 4*f0 + 3*fp1);
@@ -368,13 +369,18 @@ void Solver::WENO_m(){
             omega3 = sigma3 / a;
 
             // Coefficients
-            C[0] = c1[0]*omega1;
-            C[1] = c1[1]*omega1 + c2[0]*omega2;
+            C[4] = c1[0]*omega1;
+            C[3] = c1[1]*omega1 + c2[0]*omega2;
             C[2] = c1[2]*omega1 + c2[1]*omega2 + c3[0]*omega3;
-            C[3] = c2[2]*omega2 + c3[1]*omega3;
-            C[4] = c3[2]*omega3;
+            C[1] = c2[2]*omega2 + c3[1]*omega3;
+            C[0] = c3[2]*omega3;
 
-            f.value[i] = C[0]*fm1 + C[1]*f0 + C[2]*fp1 + C[3]*fp2 + C[4]*fp3;
+            // WENO-NN
+            if (__is_WENO_NN){
+                __weno_nn.predict(C);
+            }
+
+            f.value[i] = C[4]*fm1 + C[3]*f0 + C[2]*fp1 + C[1]*fp2 + C[0]*fp3;
         }
         // compute the flux difference
         

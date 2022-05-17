@@ -23,6 +23,17 @@ Vec1D::Vec1D(int_type size_in){
 }
 
 
+// Allocate 2D array
+void Vec1D::set(int_type size_in){
+    size = size_in;
+    value = (value_type*) malloc(sizeof(value_type)*size);
+    
+    for(int i = 0; i < size; i++){
+        value[i] = 0;
+    }
+}
+
+
 void Vec1D::size_check(int_type size_in){
     if (size != size_in){
         perror("Vec1D size not match\n");
@@ -57,7 +68,7 @@ void Vec1D::add(const Vec1D& A, const Vec1D& B){
 void Vec1D::sub(const Vec1D& A, const Vec1D& B){
     // Check Dimension
     if ((size != A.size) || (size != B.size)){
-        perror("Vec1D addition size not match");
+        perror("Vec1D subraction size not match");
         exit (EXIT_FAILURE);
     }
     for (int i = 0; i < size; i++){
@@ -105,7 +116,7 @@ void Vec1D::addby(const Vec1D& A){
 void Vec1D::subby(const Vec1D& A){
     // Check Dimension
     if (size != A.size){
-        perror("Vec1D addition size not match");
+        perror("Vec1D subtraction size not match");
         exit (EXIT_FAILURE);
     }
     for (int i = 0; i < size; i++){
@@ -203,6 +214,17 @@ Vec1D Vec1D::operator/(const value_type& b){
 }
 
 
+void Vec1D::matmul(Vec1D& a, Vec2D& B){
+    value_type sum;
+
+    for(int i = 0; i < B.nx; i++){
+        sum = 0;
+        for(int j = 0; j < B.ny; j++){
+            sum += a.value[j]*B.v[j][i];
+        }
+        value[i] = sum;
+    }
+}
 
 // Vec1D Related Operations
 value_type dot(const Vec1D& A, const Vec1D& B){
