@@ -2,7 +2,7 @@
 ### Libraries ###
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
+from tensorflow.keras import layers, regularizers
 
 import numpy as np
 
@@ -79,10 +79,16 @@ def get_model(nf=5):
     c_input = keras.Input(shape=(nf,), name="c_tilde")
     
     # Neural Network
-    NN_h1 = layers.Dense(3, activation="sigmoid", use_bias=False, name="hidden1")
-    NN_h2 = layers.Dense(3, activation="sigmoid", use_bias=False, name="hidden2")
-    NN_h3 = layers.Dense(3, activation="sigmoid", use_bias=False, name="hidden3")
-    NN_out = layers.Dense(nf, activation="linear", use_bias=False, name="dc_tilde")
+    l2_lambda = 1e-2
+
+    NN_h1 = layers.Dense(3, activation="sigmoid", use_bias=False,\
+        kernel_regularizer=regularizers.L2(l2_lambda), name="hidden1")
+    NN_h2 = layers.Dense(3, activation="sigmoid", use_bias=False,\
+        kernel_regularizer=regularizers.L2(l2_lambda), name="hidden2")
+    NN_h3 = layers.Dense(3, activation="sigmoid", use_bias=False,\
+        kernel_regularizer=regularizers.L2(l2_lambda),name="hidden3")
+    NN_out = layers.Dense(nf, activation="linear", use_bias=False,\
+        kernel_regularizer=regularizers.L2(l2_lambda), name="dc_tilde")
     c_hat = NN_out(NN_h3(NN_h2(NN_h1(c_input))))
 
     # Affine Transformation 
@@ -154,8 +160,8 @@ if __name__ == "__main__":
     # plot networks
     #keras.utils.plot_model(model, "test_WENO-NN.png")
 
-    n_epochs = 50
-    history = model.fit(X, y, batch_size=80, epochs=n_epochs, validation_split=0.2)
+    n_epochs = 20
+    history = model.fit(X, y, batch_size=100, epochs=n_epochs, validation_split=0.2)
 
     path = "test_model_SC1.bin"
     save_model(path, model)
