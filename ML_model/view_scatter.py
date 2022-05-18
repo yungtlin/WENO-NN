@@ -72,7 +72,7 @@ def L2_norm(a, b):
 
 if __name__ == "__main__":
     folder = "training_data/"
-    file = "data_SC_0.npy"
+    file = "test_SC_1.npy"
     f_bar, y = get_dataX(folder+file)
 
     # WENO5    
@@ -85,12 +85,13 @@ if __name__ == "__main__":
     path = "test_model.bin"
     weights = read_model_test(path)
     f_NN = model_predict(weights, c_tilde, f_bar )
-    plt.plot(y, f_NN, "or", markersize=0.2, label="WENO-NN", alpha=1)
+    #plt.plot(y, f_NN, "or", markersize=0.2, label="WENO-NN1", alpha=1)
     print("WENO-NN error: %.3e"%(L2_norm(f_NN, y)))
+
 
     # slope = 1
     n_one = 101
-    lims = [-0.5, 1.5]
+    lims = [-0.3, 1.3]
     x = np.linspace(*lims, n_one)
     plt.plot(x, x, "--k", linewidth=1)
     
@@ -104,4 +105,5 @@ if __name__ == "__main__":
     legend = plt.legend(fontsize=12, markerscale=20)
 
     plt.grid()
-    plt.savefig("scatter_f.png")
+    plt.show()
+    #plt.savefig("scatter_f.png")

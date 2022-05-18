@@ -139,7 +139,7 @@ def writeline(file, dtype, data):
 
 if __name__ == "__main__":
     folder = "training_data/"
-    file = "data_SC_0.npy"
+    file = "test_SC_1.npy"
     f_bar, y = get_dataX(folder+file)
     
     nf = f_bar.shape[1]
@@ -154,9 +154,10 @@ if __name__ == "__main__":
     # plot networks
     #keras.utils.plot_model(model, "test_WENO-NN.png")
 
-    history = model.fit(X, y, batch_size=80, epochs=3, validation_split=0.2)
+    n_epochs = 50
+    history = model.fit(X, y, batch_size=80, epochs=n_epochs, validation_split=0.2)
 
-    path = "test_model_2.bin"
+    path = "test_model_SC1.bin"
     save_model(path, model)
 
     import matplotlib.pyplot as plt
@@ -166,8 +167,9 @@ if __name__ == "__main__":
     plt.plot(mse_train, "b", label="training")
     plt.plot(mse_valid, "r", label="validation")
     
+    plt.title("Training History", fontsize=16)
     plt.ylabel("Mean square Error", fontsize=14)
     plt.xlabel("Epochs", fontsize=14)
-    plt.legend()
+    plt.legend(fontsize=14)
     plt.grid()
-    plt.show()
+    plt.savefig("test_training_epoch_%i.png"%n_epochs)

@@ -148,13 +148,13 @@ def init_data_U(r, r_min):
 def data_SC_sin(dataU, r):
     func = gen_data.f_sin
     
-    n_k = 50 # total for sin
-    n_shift = 10 # shift per k
-    n_data = 50 # data per shift
+    n_k = 200 # total for sin
+    n_shift = 5 # shift per k
+    n_data = 10 # data per shift
     x = np.linspace(0, 1, n_data+2*r)
 
     for k_cnt in range(n_k):
-        exp_max = 3
+        exp_max = 1.2
         exp_min = -1
         exp_k = (exp_max-exp_min)*np.random.random_sample() + exp_min
         k = np.exp(exp_k)
@@ -168,14 +168,15 @@ def data_SC_sin(dataU, r):
             
             X = gen_X_sc(x, r, func, args)
             X_pack = np.append(X_pack, X, axis=0)
+
         dataU.add(X_pack)
 
 ## Sawtooth ##
 def data_SC_sw(dataU, r):
     func = sign_sawtooth
 
-    n_k = 20 # total of wave numbers
-    n_shift = 50 # shift per k
+    n_k = 100 # total of wave numbers
+    n_shift = 10 # shift per k
     n_data = 5 # data per shift (fixed for optimal sampling)
     x = np.linspace(-1, 0, n_data+2*r)
     dx = np.mean(x[1:] - x[:-1])/2
@@ -183,8 +184,8 @@ def data_SC_sw(dataU, r):
     # flipping sign
     for sign in [1, -1]:
         for k_cnt in range(n_k):
-            exp_max = 1.4
-            exp_min = -1.4
+            exp_max = 0.8
+            exp_min = -1.2
             exp_k = (exp_max-exp_min)*np.random.random_sample() + exp_min 
             k = np.exp(exp_k)
 
@@ -203,7 +204,7 @@ def data_SC_sw(dataU, r):
 def data_SC_step(dataU, r):
     func = sign_step
 
-    n_shift = 200 # shift per h
+    n_shift = 1000 # shift per h
     n_data = 5 # data per shift (fixed for optimal sampling)
     x = np.linspace(-0.5, 0.5, n_data+2*r)
     dx = np.mean(x[1:] - x[:-1])/2
@@ -220,14 +221,21 @@ def data_SC_step(dataU, r):
 
             X = gen_X_sc(x, r, func, args)
             X_pack = np.append(X_pack, X, axis=0)
+
+            # save per 97 entries
+            if (shift%49) == 48:
+                dataU.add(X_pack)
+                X_pack = np.zeros((0, 6))
+                print("Step (sign:%i):"%(sign))
+
         dataU.add(X_pack)
 
 ## Hyperbolic Tangent ##
 def data_SC_tanh(dataU, r):
     func = sign_tanh
 
-    n_k = 50 # total of scale number
-    n_shift = 20 # shift per k
+    n_k = 115 # total of scale number
+    n_shift = 10 # shift per k
     n_data = 5 # data per shift (fixed for optimal sampling)
     x_base = np.linspace(-1, 1, n_data+2*r)
     dx = np.mean(x_base[1:] - x_base[:-1])
@@ -235,8 +243,8 @@ def data_SC_tanh(dataU, r):
     # flipping sign
     for sign in [1, -1]:
         for k_cnt in range(n_k):
-            exp_max = 0
-            exp_min = 4
+            exp_max = 4
+            exp_min = 0
             exp_k = (exp_max-exp_min)*np.random.random_sample() + exp_min 
             k = np.exp(exp_k)
 
@@ -261,19 +269,19 @@ def data_SC_sin_stp(dataU, r):
     x = np.linspace(-0.5*L, 0.5*L, n_data+2*r)
     dx = np.mean(x[1:] - x[:-1])/2
 
-    n_alpha = 10
-    n_k = 5
-    n_delta = 5
-    n_shift = 5
+    n_alpha = 140
+    n_k = 6
+    n_delta = 2
+    n_shift = 2
 
     for count_alpha in range(n_alpha):
-        alp_max = -1
+        alp_max = -1.5
         alp_min = -5
         exp_alp = (alp_max-alp_min)*np.random.random_sample() + alp_min 
         alpha = np.exp(exp_alp)
         
         for count_k in range(n_k):
-            k_max = 1.5
+            k_max = 1
             k_min = -2
             exp_k = (k_max-k_min)*np.random.random_sample() + k_min 
             k = np.exp(exp_k)
@@ -304,21 +312,21 @@ def data_SC_sin_sw(dataU, r):
     x = np.linspace(-1*L, 0*L, n_data+2*r)
     dx = np.mean(x[1:] - x[:-1])/2
 
-    n_alpha = 10
-    n_omega = 5
-    n_delta = 6
+    n_alpha = 80
+    n_omega = 3
+    n_delta = 2
     n_k = 2
     n_shift = 2
 
     for count_alpha in range(n_alpha):
-        alp_max = 1
-        alp_min = -3
+        alp_max = -1.5
+        alp_min = -4
         exp_alp = (alp_max-alp_min)*np.random.random_sample() + alp_min 
         alpha = np.exp(exp_alp)
         
         for count_omega in range(n_omega):
             k_sin_max = 1
-            k_sin_min = -1
+            k_sin_min = 0
             exp_k_sin = (k_sin_max-k_sin_min)*np.random.random_sample() + k_sin_min 
             k_sin = np.exp(exp_k_sin)
             
@@ -331,8 +339,8 @@ def data_SC_sin_sw(dataU, r):
     
                 for sign in [1, -1]:
                     for count_k in range(n_k):
-                        k_sw_max = 0.7
-                        k_sw_min = -2
+                        k_sw_max = -0.5
+                        k_sw_min = -3
                         exp_k_sw = (k_sw_max-k_sw_min)*np.random.random_sample() + k_sw_min 
                         k_sw = np.exp(exp_k_sw)
 
@@ -355,20 +363,20 @@ def data_SC_sin_tanh(dataU, r):
     x_base = np.linspace(-0.5*L, 0.5*L, n_data+2*r)
     dx = np.mean(x_base[1:] - x_base[:-1])/2
 
-    n_alpha = 30
+    n_alpha = 50
     n_omega = 5
-    n_delta = 6
+    n_delta = 2
     n_k = 2
     n_shift = 2
 
     for count_alpha in range(n_alpha):
-        alp_max = 1
+        alp_max = -1
         alp_min = -3
         exp_alp = (alp_max-alp_min)*np.random.random_sample() + alp_min 
         alpha = np.exp(exp_alp)
 
         for count_omega in range(n_omega):
-            k_sin_max = 1.6
+            k_sin_max = 1
             k_sin_min = -1
             exp_k_sin = (k_sin_max-k_sin_min)*np.random.random_sample() + k_sin_min 
             k_sin = np.exp(exp_k_sin)
@@ -403,7 +411,7 @@ def data_SC_sin_tanh(dataU, r):
 if __name__ == "__main__":
     # saving path
     folder = ""
-    file = "data_SC_0.npy"
+    file = "data_SC_1.npy"
     path = folder + file
 
     # executing data generation process
