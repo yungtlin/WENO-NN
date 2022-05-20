@@ -82,10 +82,10 @@ if __name__ == "__main__":
     print("WENO5-JS error: %.3e"%(L2_norm(f_weno, y)))
 
     # Read from bin file:
-    path = "test_model_SC1.bin"
+    path = "test_model.bin"
     weights = read_model_test(path)
     f_NN = model_predict(weights, c_tilde, f_bar )
-    plt.plot(y, f_NN, "or", markersize=0.2, label="WENO-NN1", alpha=1)
+    plt.plot(y, f_NN, "or", markersize=0.2, label="WENO-NN", alpha=1)
     print("WENO-NN error: %.3e"%(L2_norm(f_NN, y)))
 
 
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     plt.plot(x, x, "--k", linewidth=1)
     
     # plot setting
-    plt.title("Dataset: %s"%file, fontsize=16)
+    plt.title("Dataset: %s"%("training.npy"), fontsize=16)
     plt.ylabel(r"predicted ($\hat{f}$)", fontsize=12)
     plt.xlabel(r"exact ($f$)", fontsize=12)
     plt.ylim(lims)
@@ -107,5 +107,5 @@ if __name__ == "__main__":
     plt.grid()
     #plt.show()
     
-    plt.savefig("test_scatter_1e-2.png")
-    #plt.savefig("scatter_f.png")
+    #plt.savefig("test_scatter_1e-2.png")
+    plt.savefig("scatter_f.png")

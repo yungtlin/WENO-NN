@@ -79,7 +79,7 @@ def get_model(nf=5):
     c_input = keras.Input(shape=(nf,), name="c_tilde")
     
     # Neural Network
-    l2_lambda = 1e-2
+    l2_lambda = 1e-1
 
     NN_h1 = layers.Dense(3, activation="sigmoid", use_bias=False,\
         kernel_regularizer=regularizers.L2(l2_lambda), name="hidden1")
@@ -160,18 +160,19 @@ if __name__ == "__main__":
     # plot networks
     #keras.utils.plot_model(model, "test_WENO-NN.png")
 
-    n_epochs = 20
+    n_epochs = 50
     history = model.fit(X, y, batch_size=100, epochs=n_epochs, validation_split=0.2)
 
     path = "test_model_SC1.bin"
-    save_model(path, model)
+    #save_model(path, model)
 
     import matplotlib.pyplot as plt
     mse_train = history.history["root_mean_squared_error"]
     mse_valid = history.history["val_root_mean_squared_error"]
 
-    plt.plot(mse_train, "b", label="training")
-    plt.plot(mse_valid, "r", label="validation")
+    x = np.arange(n_epochs) + 1
+    plt.plot(x, mse_train, "b", label="training")
+    plt.plot(x, mse_valid, "r", label="validation")
     
     plt.title("Training History", fontsize=16)
     plt.ylabel("Mean square Error", fontsize=14)

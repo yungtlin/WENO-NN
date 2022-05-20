@@ -18,13 +18,14 @@ int main(int argc, char *argv[])
     int nu = 3, nx = 10001;
     value_type xlim[2] = {-5, 5};
     value_type gamma = 1.4;
-    value_type CFL = 0.8, T = 1.80;
+    value_type CFL = 0.8, T = 0.5;
 
     Solver solver = Solver(nu, xlim, nx);
 
     // WENO-NN
-    //solver.init_NN("../ML_model/test_model.bin");
-
+    //solver.init_NN("../ML_model/test_model_SC1.bin");
+    // test_model.bin 1e-100
+    // test_model_SC1.bin 1e-1
     solver.run(CFL, T);
 
     solver.save_case("data/test");   
