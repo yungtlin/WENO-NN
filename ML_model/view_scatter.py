@@ -3,12 +3,14 @@
 ### Libraries ###
 import numpy as np
 import matplotlib.pyplot as plt
-from train_SC import WENO5_getC, get_dataX
+from train_model import *
 
 ### Model Testing ###
-def read_model_test(path):
+def read_model(path):
     print("Reading model: %s"%path)
     file = open(path, "rb") 
+
+    model_id = readline(file, np.int32, 1)[0]
 
     nn_count = readline(file, np.int32, 1)[0]
     
@@ -21,7 +23,12 @@ def read_model_test(path):
         weights += [weight.reshape(dim)]
     file.close()
 
-    return weights
+    if model_id == 1:
+        data_func = get_model_SC_data
+    elif model_id == 2:
+        data_func = get_model_2_data
+
+    return model_id, weights, data_func
 
 def readline(file, dtype, count):
     if dtype == np.float32:
@@ -33,12 +40,25 @@ def readline(file, dtype, count):
     return np.frombuffer(byte_arr, dtype=dtype, count=count)
 
 #
-def model_predict(weights, c_tilde, f_bar):
+def model_predict(model_id, weights, X):
+    if model_id == 1:
+        c_tilde = X["x1"]
+        f_bar = X["x2"]
+        f_NN = model_SC(weights, c_tilde, f_bar)
+    elif model_id == 2:
+        omega = X["x1"]
+        f_hat = X["x2"]
+        f_NN = model_2(weights, omega, f_hat)
+
+    return f_NN
+
+# model ID: 1
+def model_SC(weights, c_tilde, f_bar):
     # Neural Network
     nn_count = len(weights)
 
     # sigmoid->sigmoid->sigmoid->linear
-    act_list = [actf_sigmoid, actf_sigmoid, actf_sigmoid, actf_linear]
+    act_list = [actf_relu, actf_relu, actf_relu, actf_linear]
     c_hat = c_tilde
     for nn_idx in range(nn_count):
         act_func = act_list[nn_idx]
@@ -56,6 +76,28 @@ def model_predict(weights, c_tilde, f_bar):
     f_NN = np.sum(c*f_bar, axis=1)
     return f_NN
 
+# model ID: 2
+def model_2(weights, x1, f_hat):
+    # Neural Network
+    nn_count = len(weights)
+
+    # sigmoid->sigmoid->sigmoid->linear
+    act_list = [actf_relu, actf_relu, actf_relu, actf_softmax]
+    omega_hat = x1
+    for nn_idx in range(nn_count):
+        act_func = act_list[nn_idx]
+
+        weight = weights[nn_idx]
+        omega_hat = np.matmul(omega_hat, weight)
+        omega_hat = act_func(omega_hat)
+
+    # Inner product
+    f_NN = np.sum(omega_hat*f_hat, axis=1)
+    
+    return f_NN
+
+
+
 
 # activation functions 
 def actf_sigmoid(x):
@@ -64,30 +106,47 @@ def actf_sigmoid(x):
 def actf_linear(x):
     return x
 
+def actf_relu(x):
+    return np.where(x>0, x, 0)
+
+def actf_softmax(x):
+    exp_x = np.exp(x)
+    sum_x = np.sum(exp_x, axis=1).reshape((-1, 1))
+
+    return exp_x/sum_x
+
+
+
 def L2_norm(a, b):
     dev = a - b
     err_L2 = np.sqrt(np.mean(dev*dev))
     return err_L2
 
 
+
 if __name__ == "__main__":
     folder = "training_data/"
-    data_name = "data_github.npy"
+    data_name = "test_SC_1.npy"
+    #data_name = "data_github.npy"
     f_bar, y = get_dataX(folder+data_name)
 
     # WENO5    
     c_tilde = WENO5_getC(f_bar)
     f_weno = np.sum(c_tilde*f_bar, axis=1)
+
     plt.plot(y, f_weno, "ob", markersize=0.2, label="WENO5-JS", alpha=1)
     print("WENO5-JS error: %.3e"%(L2_norm(f_weno, y)))
 
     # Read from bin file:
-    model_path = "test_model_SC2.bin"
-    weights = read_model_test(model_path)
-    f_NN = model_predict(weights, c_tilde, f_bar )
-    plt.plot(y, f_NN, "or", markersize=0.2, label="WENO-NN", alpha=1)
-    print("WENO-NN error: %.3e"%(L2_norm(f_NN, y)))
+    model_path = "test_model2.bin"
+    model_id, weights, data_func = read_model(model_path)
+    X = data_func(f_bar)
 
+
+    f_NN = model_predict(model_id, weights, X)
+    
+    #plt.plot(y, f_NN, "or", markersize=0.2, label="WENO-NN", alpha=1)
+    print("WENO-NN error: %.3e"%(L2_norm(f_NN, y)))
 
     # slope = 1
     n_one = 101

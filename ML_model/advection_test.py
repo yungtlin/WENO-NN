@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 
 from train_model import *
+from view_scatter import *
 
 def exact_square(x, t, c, L):
     Phi = (x - c*t)%L
@@ -75,15 +76,12 @@ def adv_RK3(adv_func, u0, x, c, CFL, T):
             dt = T-t
 
         dfdx = adv_dfdx(adv_func, u, c, dx)
-        #dfdx = adv_upwind(u, c, dx)
         u1 = u + dfdx*dt
 
         dfdx = adv_dfdx(adv_func, u1, c, dx)
-        #dfdx = adv_upwind(u1, c, dx)
         u2 = 3/4*u + 1/4*u1 + 1/4*dfdx*dt
 
         dfdx = adv_dfdx(adv_func, u2, c, dx)
-        #dfdx = adv_upwind(u2, c, dx)
         u = 1/3*u + 2/3*u2 + 2/3*dfdx*dt
 
         iteration += 1
@@ -103,7 +101,52 @@ def adv_dfdx(adv_func, u, c, dx):
 
     return dfdx
 
-# 1st upwind
+def adv_RK3_NN(model_info, u0, x, c, CFL, T, u_max=1e10):
+    dx = np.mean(x[1:]-x[:-1])
+    dt = CFL*dx/c
+
+    u = np.array(u0)
+
+    t = 0
+    iteration = 0
+    while(t < T):
+        if dt > T-t:
+            dt = T-t
+
+        dfdx = adv_dfdx_NN(model_info, u, c, dx)
+        u1 = u + dfdx*dt
+
+        dfdx = adv_dfdx_NN(model_info, u1, c, dx)
+        u2 = 3/4*u + 1/4*u1 + 1/4*dfdx*dt
+
+        dfdx = adv_dfdx_NN(model_info, u2, c, dx)
+        u = 1/3*u + 2/3*u2 + 2/3*dfdx*dt
+
+        iteration += 1
+        t += dt
+        #print("Iteration: %i, t: %.3e"%(iteration, t))
+
+        if np.max(np.abs(u)) > u_max:
+            print("NN Diverged!")
+            break
+
+    return u
+
+def adv_dfdx_NN(model_info, u, c, dx):
+    model_id, weights, data_func = model_info
+    f_bar = adv_get_f_bar(u, c)
+    X = data_func(f_bar)
+
+    f_NN = model_predict(model_id, weights, X)
+
+    f_r = f_NN
+    f_l = np.roll(f_NN, 1)
+
+    dfdx = (f_r - f_l)/dx
+
+    return dfdx
+
+# 1st-order upwind
 def adv_upwind(u, c, dx):
     f = -c*u
 
@@ -156,9 +199,33 @@ def test_adv(adv_func, wave_func):
 
     return err, TV
 
+def test_adv_NN(model_info, wave_func):
+    # physics
+    L = 1 # periodic boundary f(x+L) = f(x)
+    c = 1
 
-if __name__ == "__main__":
+    # simulation parameter
+    nI = 100
+    CFL = 0.5
+    T = 10
 
+    # initialization
+    x = np.linspace(0, L, nI+1)[:-1]
+    u0 = wave_func(x, 0, c, L)
+
+    # simulation
+    u_NN = adv_RK3_NN(model_info, u0, x, c, CFL, T)
+
+    # evalution
+    u_exact = wave_func(x, T, c, L)
+    err =  rmse(u_NN, u_exact)
+    TV = compute_TV(u_NN)
+
+    return err, TV
+
+
+# Macro scripts
+def test_WENO5_JS():
     print("Testing... (sin)")
     err_sin, TV_sin = test_adv(WENO5_getf, exact_sin)
     print("error:", err_sin)
@@ -169,3 +236,31 @@ if __name__ == "__main__":
     err_sq, TV_sq = test_adv(WENO5_getf, exact_square)
     print("error:", err_sq)
     print("TV:", TV_sq)
+    print()
+
+    return (err_sin, TV_sin), (err_sq, TV_sq)
+
+def test_WENO_NN(model_path):
+    model_info = read_model(model_path)
+
+    print("Testing... (sin)")
+    err_sin, TV_sin = test_adv_NN(model_info, exact_sin)
+    print("error:", err_sin)
+    print("TV:", TV_sin)
+    print()
+    
+    print("Testing... (square)")
+    err_sq, TV_sq = test_adv_NN(model_info, exact_square)
+    print("error:", err_sq)
+    print("TV:", TV_sq)
+    print()
+
+    return (err_sin, TV_sin), (err_sq, TV_sq)
+
+if __name__ == "__main__":
+    test_WENO5_JS()
+
+    model_path = "test_model_SC.bin"
+    test_WENO_NN(model_path)
+
+
