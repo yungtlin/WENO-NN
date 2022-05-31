@@ -22,13 +22,13 @@ def get_dataX(path):
 
 ### WENO ###
 # compute WENO5-JS coefficients
-def WENO5_getC(f_tilde):
+def WENO5_getC(f_bar):
     # check dimension (r=3)
     r = 3
-    if f_tilde.shape[1] != (2*r-1):
+    if f_bar.shape[1] != (2*r-1):
         raise ValueError("Data Dimension Must Be 5")
 
-    omega = WENO5_omega(f_tilde)
+    omega = WENO5_omega(f_bar)
     C = WENO5_C(omega)
 
     return C
@@ -145,26 +145,26 @@ def writeline(file, dtype, data):
 
 if __name__ == "__main__":
     folder = "training_data/"
-    file = "test_SC_1.npy"
-    f_bar, y = get_dataX(folder+file)
+    file_data = "test_SC_1.npy"
+    f_bar, y = get_dataX(folder+file_data)
     
     nf = f_bar.shape[1]
     c_tilde = WENO5_getC(f_bar)
-
+    
     # model inputs
     X = {"c_tilde":c_tilde, "f_bar":f_bar},
 
     # get NN model
     model = get_model()
-
+    
     # plot networks
     #keras.utils.plot_model(model, "test_WENO-NN.png")
 
-    n_epochs = 50
+    n_epochs = 10
     history = model.fit(X, y, batch_size=100, epochs=n_epochs, validation_split=0.2)
 
-    path = "test_model_SC1.bin"
-    #save_model(path, model)
+    path = "test_model_SC2.bin"
+    save_model(path, model)
 
     import matplotlib.pyplot as plt
     mse_train = history.history["root_mean_squared_error"]
@@ -180,3 +180,7 @@ if __name__ == "__main__":
     plt.legend(fontsize=14)
     plt.grid()
     plt.savefig("test_training_epoch_%i.png"%n_epochs)
+'''
+    import os
+    os.system("python3.10 view_scatter.py")
+'''

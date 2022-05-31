@@ -72,8 +72,8 @@ def L2_norm(a, b):
 
 if __name__ == "__main__":
     folder = "training_data/"
-    file = "test_SC_1.npy"
-    f_bar, y = get_dataX(folder+file)
+    data_name = "data_github.npy"
+    f_bar, y = get_dataX(folder+data_name)
 
     # WENO5    
     c_tilde = WENO5_getC(f_bar)
@@ -82,8 +82,8 @@ if __name__ == "__main__":
     print("WENO5-JS error: %.3e"%(L2_norm(f_weno, y)))
 
     # Read from bin file:
-    path = "test_model.bin"
-    weights = read_model_test(path)
+    model_path = "test_model_SC2.bin"
+    weights = read_model_test(model_path)
     f_NN = model_predict(weights, c_tilde, f_bar )
     plt.plot(y, f_NN, "or", markersize=0.2, label="WENO-NN", alpha=1)
     print("WENO-NN error: %.3e"%(L2_norm(f_NN, y)))
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     plt.plot(x, x, "--k", linewidth=1)
     
     # plot setting
-    plt.title("Dataset: %s"%("training.npy"), fontsize=16)
+    plt.title("Dataset: %s"%(data_name), fontsize=16)
     plt.ylabel(r"predicted ($\hat{f}$)", fontsize=12)
     plt.xlabel(r"exact ($f$)", fontsize=12)
     plt.ylim(lims)
