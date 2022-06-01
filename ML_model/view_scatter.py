@@ -12,6 +12,43 @@ def read_model(path):
 
     model_id = readline(file, np.int32, 1)[0]
 
+    if model_id == 1:
+        weights = read_model_SC(file)
+        data_func = get_model_SC_data
+
+    elif model_id == 2:
+        weights = read_model_2(file)
+        data_func = get_model_2_data
+
+    file.close()
+
+    return model_id, weights, data_func
+
+def read_model_SC(file):
+    nn_count = readline(file, np.int32, 1)[0]
+    
+    weights = []
+
+    for nn_idx in range(nn_count):
+        nW = readline(file, np.int32, 1)
+        dim = readline(file, np.int32, 2)
+        n_w = dim[1] * dim[0]
+        # weight
+        weight = readline(file, np.float32, n_w)
+        weight = weight.reshape(dim)
+
+        # bias
+        if nW == 2:
+            bias = readline(file, np.float32, dim[1])
+        else:
+            bias = []
+
+        weights += [(weight, bias)]
+
+    return weights
+
+
+def read_model_2(file):
     nn_count = readline(file, np.int32, 1)[0]
     
     weights = []
@@ -21,14 +58,9 @@ def read_model(path):
         n_w = dim[1] * dim[0]
         weight = readline(file, np.float32, n_w)
         weights += [weight.reshape(dim)]
-    file.close()
 
-    if model_id == 1:
-        data_func = get_model_SC_data
-    elif model_id == 2:
-        data_func = get_model_2_data
+    return weights
 
-    return model_id, weights, data_func
 
 def readline(file, dtype, count):
     if dtype == np.float32:
@@ -63,8 +95,14 @@ def model_SC(weights, c_tilde, f_bar):
     for nn_idx in range(nn_count):
         act_func = act_list[nn_idx]
 
-        weight = weights[nn_idx]
+        weight, bias = weights[nn_idx]
+        
         c_hat = np.matmul(c_hat, weight)
+        
+        if len(bias) != 0:
+            bias = bias.reshape((1, -1))
+            c_hat = c_hat + bias
+
         c_hat = act_func(c_hat)
 
     # Affine Transformation 
@@ -138,14 +176,13 @@ if __name__ == "__main__":
     print("WENO5-JS error: %.3e"%(L2_norm(f_weno, y)))
 
     # Read from bin file:
-    model_path = "test_model2.bin"
+    model_path = "test_model_SC.bin"
     model_id, weights, data_func = read_model(model_path)
     X = data_func(f_bar)
 
-
     f_NN = model_predict(model_id, weights, X)
     
-    #plt.plot(y, f_NN, "or", markersize=0.2, label="WENO-NN", alpha=1)
+    plt.plot(y, f_NN, "or", markersize=0.2, label="WENO-NN", alpha=1)
     print("WENO-NN error: %.3e"%(L2_norm(f_NN, y)))
 
     # slope = 1
@@ -164,7 +201,7 @@ if __name__ == "__main__":
     legend = plt.legend(fontsize=12, markerscale=20)
 
     plt.grid()
-    #plt.show()
+    plt.show()
     
     #plt.savefig("test_scatter_1e-2.png")
-    plt.savefig("scatter_f.png")
+    #plt.savefig("scatter_f.png")

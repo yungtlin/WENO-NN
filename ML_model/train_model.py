@@ -120,15 +120,14 @@ def get_model_SC(nf1=5, nf2=5):
     c_input = keras.Input(shape=(nf1,), name="x1")
 
     # Neural Network
-    l2_lambda = 1e-1
-
-    NN_h1 = layers.Dense(3, activation="relu", use_bias=False,\
+    NN_h1 = layers.Dense(3, activation="relu",\
         name="hidden1")
-    NN_h2 = layers.Dense(3, activation="relu", use_bias=False,\
+    NN_h2 = layers.Dense(3, activation="relu",\
         name="hidden2")
-    NN_h3 = layers.Dense(3, activation="relu", use_bias=False,\
+    NN_h3 = layers.Dense(3, activation="relu",\
         name="hidden3")
-    
+
+    l2_lambda = 1e-1    
     NN_out = layers.Dense(nf2, activation="linear", use_bias=False,\
         activity_regularizer=regularizers.L2(l2_lambda), name="dc_tilde")
     c_hat = NN_out(NN_h3(NN_h2(NN_h1(c_input))))
@@ -148,7 +147,7 @@ def get_model_SC(nf1=5, nf2=5):
     # set solver
     model.compile(
         loss=keras.losses.MeanSquaredError(),
-        optimizer=keras.optimizers.Adam(learning_rate=0.01),
+        optimizer=keras.optimizers.Adam(learning_rate=0.001),
         metrics=[keras.metrics.RootMeanSquaredError()],
     )
 
@@ -223,7 +222,56 @@ def get_model_2_data(f_bar):
     X = {"x1":omega, "x2":f_hat}
     return X
 
+def get_model_3(nf1=5, nf2=5):
+    model_id = 3
 
+    data_func = get_model_SC_data
+
+    ## model ##
+    # ref: https://www.tensorflow.org/guide/keras/functional
+
+    # WENO5-JS coefficients
+    c_input = keras.Input(shape=(nf1,), name="x1")
+
+    # Neural Network
+    NN_h1 = layers.Dense(3, activation="relu",\
+        name="hidden1")
+    NN_h2 = layers.Dense(3, activation="relu",\
+        name="hidden2")
+    NN_h3 = layers.Dense(3, activation="relu",\
+        name="hidden3")
+
+    l2_lambda = 1e-1    
+    NN_out = layers.Dense(nf2, activation="linear", use_bias=False,\
+        activity_regularizer=regularizers.L2(l2_lambda), name="dc_tilde")
+    c_hat = NN_out(NN_h3(NN_h2(NN_h1(c_input))))
+
+    # Affine Transformation 
+    sum_c = tf.reduce_sum(c_hat, axis=1, keepdims=True)
+    c_hat_s = c_hat - sum_c/nf2 # L2-optimal
+    c = c_hat_s + c_input
+
+    # Inner product
+    f_input = keras.Input(shape=(nf2,), name="x2")
+    outputs = layers.Dot(axes=1)([c, f_input]) # WENO-NN output
+
+    # model wrap up
+    model = keras.Model(inputs=[c_input, f_input], outputs=outputs, name="WENO-NN")
+
+    # set solver
+    model.compile(
+        loss=keras.losses.MeanSquaredError(),
+        optimizer=keras.optimizers.Adam(learning_rate=0.001),
+        metrics=[keras.metrics.RootMeanSquaredError()],
+    )
+
+    model.summary()
+
+    return model, model_id, data_func
+
+
+
+### Model Saving ###
 # saves the neural networks weights in a binary file
 def save_model(path, model, model_id):
     print("Saving model: %s"%path)
@@ -236,7 +284,6 @@ def save_model(path, model, model_id):
         save_model1(file, model)
     elif model_id == 2:
         save_model2(file, model)
-
 
     file.close()
 
@@ -251,6 +298,10 @@ def save_model1(file, model):
     # loops over specified layers
     for nn_idx in nn_list:
         nn_layer = model.layers[nn_idx].get_weights()
+
+        nW = len(nn_layer) # nW = 1 (no bias), nw = 2 (biased)
+        
+        writeline(file, np.int32, nW)
         weight = nn_layer[0]
         w_dim = weight.shape
         # writes weights dimension
@@ -258,6 +309,9 @@ def save_model1(file, model):
         # writes weights
         writeline(file, np.float32, weight)
 
+        if nW == 2:
+            bias = nn_layer[1]
+            writeline(file, np.float32, bias)
 
 def save_model2(file, model):
     # neural networks indices in the tf model
@@ -283,27 +337,14 @@ def writeline(file, dtype, data):
     data_np = np.array(data, dtype=dtype)
     file.write(data_np.tobytes())
 
-if __name__ == "__main__":
-    folder = "training_data/"
-    file_data = "test_SC_1.npy"
-    f_bar, y = get_dataX(folder+file_data)
-    
-    model, model_id, data_func = get_model_SC()
-    X = data_func(f_bar)    
 
-    # plot networks
-    #keras.utils.plot_model(model, "test_WENO-NN.png")
-
-    n_epochs = 10
-    history = model.fit(X, y, batch_size=100, epochs=n_epochs, validation_split=0.2)
-
-    path = "test_model_SC.bin"
-    save_model(path, model, model_id)
-
+def plot_history(history):
     # Training history #
     import matplotlib.pyplot as plt
     mse_train = history.history["root_mean_squared_error"]
     mse_valid = history.history["val_root_mean_squared_error"]
+
+    n_epochs = len(mse_train)
 
     x = np.arange(n_epochs) + 1
     plt.plot(x, mse_train, "b", label="training")
@@ -317,5 +358,27 @@ if __name__ == "__main__":
     plt.savefig("test_training_epoch_%i.png"%n_epochs)
 
 
-    import os
-    os.system("python3.10 advection_test.py")
+if __name__ == "__main__":
+    folder = "training_data/"
+    #file_data = "data_github.npy"
+    file_data = "test_SC_1.npy"
+    f_bar, y = get_dataX(folder+file_data)
+    
+    model, model_id, data_func = get_model_SC()
+    X = data_func(f_bar)    
+
+    # plot networks
+    #keras.utils.plot_model(model, "test_WENO-NN.png")
+
+    n_epochs = 10
+    history = model.fit(X, y, batch_size=80, epochs=n_epochs, validation_split=0.2)
+
+    plot_history(history)
+
+    model_path = "test_model_SC.bin"
+    save_model(model_path, model, model_id)
+
+
+    import advection_test
+    advection_test.test_WENO5_JS()
+    advection_test.test_WENO_NN(model_path)

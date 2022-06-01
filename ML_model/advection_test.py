@@ -223,6 +223,40 @@ def test_adv_NN(model_info, wave_func):
 
     return err, TV
 
+def view_adv_NN(model_info, wave_func):
+    # physics
+    L = 1 # periodic boundary f(x+L) = f(x)
+    c = 1
+
+    # simulation parameter
+    nI = 100
+    CFL = 0.5
+    T = 10
+
+    # initialization
+    x = np.linspace(0, L, nI+1)[:-1]
+    u0 = wave_func(x, 0, c, L)
+
+    # simulation
+    u_NN = adv_RK3_NN(model_info, u0, x, c, CFL, T)
+
+    # evalution
+    u_exact = wave_func(x, T, c, L)
+    err =  rmse(u_NN, u_exact)
+    TV = compute_TV(u_NN)
+    print("error:", err)
+    print("TV:", TV)
+
+    
+    x_exact =np.linspace(0, L, 1001)
+    u_exact = wave_func(x_exact, T, c, L)
+
+    plt.plot(x, u_NN, "ob")
+    plt.plot(x_exact, u_exact, "--k")
+    plt.show()
+
+    return err, TV
+
 
 # Macro scripts
 def test_WENO5_JS():
@@ -245,8 +279,7 @@ def test_WENO_NN(model_path):
 
     print("Testing... (sin)")
     err_sin, TV_sin = test_adv_NN(model_info, exact_sin)
-    print("error:", err_sin)
-    print("TV:", TV_sin)
+
     print()
     
     print("Testing... (square)")
@@ -257,10 +290,21 @@ def test_WENO_NN(model_path):
 
     return (err_sin, TV_sin), (err_sq, TV_sq)
 
+def view_WENO_NN(model_path):
+    model_info = read_model(model_path)
+
+    print("Testing... (sin)")
+    err_sin, TV_sin = view_adv_NN(model_info, exact_sin)
+    print()
+    
+    print("Testing... (square)")
+    err_sq, TV_sq = view_adv_NN(model_info, exact_square)
+    print()
+
 if __name__ == "__main__":
-    test_WENO5_JS()
+    model_folder = "test_batch/"
+    model_name = "model_batch_temp.bin"
+    model_path = model_folder + model_name
 
-    model_path = "test_model_SC.bin"
-    test_WENO_NN(model_path)
-
+    view_WENO_NN(model_path)
 
