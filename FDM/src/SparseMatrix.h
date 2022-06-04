@@ -109,5 +109,5 @@ public:
     }
     //
     void set(int ny_in, int nx_in);
-
+    void print_value();
 };

@@ -24,17 +24,24 @@
 class WENO_NN
 {
 private:
+    int __model_id;
     int __nn_count;
+
     Vec2D *__weights;
+    Vec1D *__bias;
     Vec1D *__outputs;
     Vec1D __intput;
+    int* __nW;
 
 public:
     WENO_NN();
     ~WENO_NN(){
         if (__nn_count > 0){
             delete[] __weights;
+            delete[] __bias;
             delete[] __outputs;
+
+            free(__nW);
         }
     };
 
@@ -46,6 +53,7 @@ public:
     // activation functions
     void activ_sigmoid(Vec1D& a);
     void activ_linear(Vec1D& a);
+    void activ_relu(Vec1D& a);
 
     // predict 
     void predict(value_type* C);

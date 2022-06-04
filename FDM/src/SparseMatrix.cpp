@@ -264,3 +264,16 @@ void Vec2D::set(int ny_in, int nx_in){
     }
 }
 
+
+void Vec2D::print_value(){
+    printf("Vec2D size: %i %i\n", ny, nx);
+    for (int j = 0; j < ny; j++){
+        for(int i = 0; i < nx; i++){
+            printf(SP_PRINT_FORMAT, v[j][i]);
+        }
+        printf("\n");        
+    }
+    printf("\n");
+}
+
+

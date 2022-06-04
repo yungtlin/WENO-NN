@@ -15,15 +15,15 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     // variables
-    int nu = 3, nx = 10001;
+    int nu = 3, nx = 201;
     value_type xlim[2] = {-5, 5};
     value_type gamma = 1.4;
-    value_type CFL = 0.8, T = 0.5;
+    value_type CFL = 0.8, T = 1.8;
 
     Solver solver = Solver(nu, xlim, nx);
 
     // WENO-NN
-    //solver.init_NN("../ML_model/test_model_SC1.bin");
+    solver.init_NN("../ML_model/model_batch_10.bin");
     // test_model.bin 1e-100
     // test_model_SC1.bin 1e-1
     solver.run(CFL, T);

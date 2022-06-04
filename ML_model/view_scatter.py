@@ -36,10 +36,11 @@ def read_model_SC(file):
         # weight
         weight = readline(file, np.float32, n_w)
         weight = weight.reshape(dim)
-
+        print(weight)
         # bias
         if nW == 2:
             bias = readline(file, np.float32, dim[1])
+            print(bias)
         else:
             bias = []
 
@@ -176,10 +177,10 @@ if __name__ == "__main__":
     print("WENO5-JS error: %.3e"%(L2_norm(f_weno, y)))
 
     # Read from bin file:
-    model_path = "model_batch_7.bin"
+    model_path = "model_batch_10.bin"
     model_id, weights, data_func = read_model(model_path)
     X = data_func(f_bar)
-
+'''
     f_NN = model_predict(model_id, weights, X)
     
     plt.plot(y, f_NN, "or", markersize=0.2, label="WENO-NN", alpha=1)
@@ -205,3 +206,4 @@ if __name__ == "__main__":
     
     #plt.savefig("test_scatter_1e-2.png")
     plt.savefig("scatter_f.png")
+'''

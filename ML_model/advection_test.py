@@ -307,8 +307,8 @@ def view_WENO_NN(model_path, T):
     print()
 
 if __name__ == "__main__":
-    model_folder = "test_batch/"
-    model_name = "model_batch_30.bin"
+    model_folder = "test_batch/batch4/"
+    model_name = "model_batch_10.bin"
     model_path = model_folder + model_name
 
     view_WENO_NN(model_path, 50)
