@@ -223,7 +223,7 @@ def test_adv_NN(model_info, wave_func):
 
     return err, TV
 
-def view_adv_NN(model_info, wave_func):
+def view_adv_NN(model_info, wave_func, T):
     # physics
     L = 1 # periodic boundary f(x+L) = f(x)
     c = 1
@@ -231,7 +231,6 @@ def view_adv_NN(model_info, wave_func):
     # simulation parameter
     nI = 100
     CFL = 0.5
-    T = 10
 
     # initialization
     x = np.linspace(0, L, nI+1)[:-1]
@@ -239,6 +238,7 @@ def view_adv_NN(model_info, wave_func):
 
     # simulation
     u_NN = adv_RK3_NN(model_info, u0, x, c, CFL, T)
+    u_weno = adv_RK3(WENO5_getf, u0, x, c, CFL, T)
 
     # evalution
     u_exact = wave_func(x, T, c, L)
@@ -251,8 +251,10 @@ def view_adv_NN(model_info, wave_func):
     x_exact =np.linspace(0, L, 1001)
     u_exact = wave_func(x_exact, T, c, L)
 
-    plt.plot(x, u_NN, "ob")
+    plt.plot(x, u_NN, "ob", label="WENO-NN")
+    plt.plot(x, u_weno, "sr", label="WENO5-JS")
     plt.plot(x_exact, u_exact, "--k")
+    plt.legend(fontsize=14)
     plt.show()
 
     return err, TV
@@ -279,7 +281,8 @@ def test_WENO_NN(model_path):
 
     print("Testing... (sin)")
     err_sin, TV_sin = test_adv_NN(model_info, exact_sin)
-
+    print("error:", err_sin)
+    print("TV:", TV_sin)
     print()
     
     print("Testing... (square)")
@@ -290,21 +293,23 @@ def test_WENO_NN(model_path):
 
     return (err_sin, TV_sin), (err_sq, TV_sq)
 
-def view_WENO_NN(model_path):
+def view_WENO_NN(model_path, T):
     model_info = read_model(model_path)
 
+    test_WENO5_JS()
+
     print("Testing... (sin)")
-    err_sin, TV_sin = view_adv_NN(model_info, exact_sin)
+    err_sin, TV_sin = view_adv_NN(model_info, exact_sin, T)
     print()
     
     print("Testing... (square)")
-    err_sq, TV_sq = view_adv_NN(model_info, exact_square)
+    err_sq, TV_sq = view_adv_NN(model_info, exact_square, T)
     print()
 
 if __name__ == "__main__":
     model_folder = "test_batch/"
-    model_name = "model_batch_temp.bin"
+    model_name = "model_batch_30.bin"
     model_path = model_folder + model_name
 
-    view_WENO_NN(model_path)
+    view_WENO_NN(model_path, 50)
 

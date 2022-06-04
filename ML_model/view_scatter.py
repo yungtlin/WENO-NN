@@ -176,7 +176,7 @@ if __name__ == "__main__":
     print("WENO5-JS error: %.3e"%(L2_norm(f_weno, y)))
 
     # Read from bin file:
-    model_path = "test_model_SC.bin"
+    model_path = "model_batch_7.bin"
     model_id, weights, data_func = read_model(model_path)
     X = data_func(f_bar)
 
@@ -201,7 +201,7 @@ if __name__ == "__main__":
     legend = plt.legend(fontsize=12, markerscale=20)
 
     plt.grid()
-    plt.show()
+    #plt.show()
     
     #plt.savefig("test_scatter_1e-2.png")
-    #plt.savefig("scatter_f.png")
+    plt.savefig("scatter_f.png")

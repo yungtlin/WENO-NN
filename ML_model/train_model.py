@@ -120,16 +120,31 @@ def get_model_SC(nf1=5, nf2=5):
     c_input = keras.Input(shape=(nf1,), name="x1")
 
     # Neural Network
-    NN_h1 = layers.Dense(3, activation="relu",\
+    bias_init = tf.keras.initializers.RandomNormal(mean=0.0, stddev=0.005, seed=None)
+
+    l2_lambda = 6 + 10*np.random.rand()   
+
+    np1 = np.random.randint(3) + 3
+    np2 = np.random.randint(3) + 3
+    np3 = np.random.randint(3) + 3
+
+
+    NN_h1 = layers.Dense(np1, activation="relu",\
+        bias_initializer=bias_init,\
         name="hidden1")
-    NN_h2 = layers.Dense(3, activation="relu",\
+    NN_h2 = layers.Dense(np2, activation="relu",\
+        bias_initializer=bias_init,\
         name="hidden2")
-    NN_h3 = layers.Dense(3, activation="relu",\
+    NN_h3 = layers.Dense(np3, activation="relu",\
+        bias_initializer=bias_init,\
         name="hidden3")
 
-    l2_lambda = 1e-1    
-    NN_out = layers.Dense(nf2, activation="linear", use_bias=False,\
-        activity_regularizer=regularizers.L2(l2_lambda), name="dc_tilde")
+    ###
+     
+    NN_out = layers.Dense(nf2, activation="linear", use_bias=True,\
+        bias_initializer=bias_init,\
+        activity_regularizer=regularizers.L2(l2_lambda),\
+        name="dc_tilde")
     c_hat = NN_out(NN_h3(NN_h2(NN_h1(c_input))))
 
     # Affine Transformation 
@@ -151,7 +166,7 @@ def get_model_SC(nf1=5, nf2=5):
         metrics=[keras.metrics.RootMeanSquaredError()],
     )
 
-    model.summary()
+    #model.summary()
 
     return model, model_id, data_func
 
@@ -221,54 +236,6 @@ def get_model_2_data(f_bar):
     # model inputs
     X = {"x1":omega, "x2":f_hat}
     return X
-
-def get_model_3(nf1=5, nf2=5):
-    model_id = 3
-
-    data_func = get_model_SC_data
-
-    ## model ##
-    # ref: https://www.tensorflow.org/guide/keras/functional
-
-    # WENO5-JS coefficients
-    c_input = keras.Input(shape=(nf1,), name="x1")
-
-    # Neural Network
-    NN_h1 = layers.Dense(3, activation="relu",\
-        name="hidden1")
-    NN_h2 = layers.Dense(3, activation="relu",\
-        name="hidden2")
-    NN_h3 = layers.Dense(3, activation="relu",\
-        name="hidden3")
-
-    l2_lambda = 1e-1    
-    NN_out = layers.Dense(nf2, activation="linear", use_bias=False,\
-        activity_regularizer=regularizers.L2(l2_lambda), name="dc_tilde")
-    c_hat = NN_out(NN_h3(NN_h2(NN_h1(c_input))))
-
-    # Affine Transformation 
-    sum_c = tf.reduce_sum(c_hat, axis=1, keepdims=True)
-    c_hat_s = c_hat - sum_c/nf2 # L2-optimal
-    c = c_hat_s + c_input
-
-    # Inner product
-    f_input = keras.Input(shape=(nf2,), name="x2")
-    outputs = layers.Dot(axes=1)([c, f_input]) # WENO-NN output
-
-    # model wrap up
-    model = keras.Model(inputs=[c_input, f_input], outputs=outputs, name="WENO-NN")
-
-    # set solver
-    model.compile(
-        loss=keras.losses.MeanSquaredError(),
-        optimizer=keras.optimizers.Adam(learning_rate=0.001),
-        metrics=[keras.metrics.RootMeanSquaredError()],
-    )
-
-    model.summary()
-
-    return model, model_id, data_func
-
 
 
 ### Model Saving ###
@@ -361,15 +328,17 @@ def plot_history(history):
 if __name__ == "__main__":
     folder = "training_data/"
     #file_data = "data_github.npy"
-    file_data = "test_SC_1.npy"
+    file_data = "data_github.npy"
     f_bar, y = get_dataX(folder+file_data)
     
     model, model_id, data_func = get_model_SC()
     X = data_func(f_bar)    
 
+
     # plot networks
     #keras.utils.plot_model(model, "test_WENO-NN.png")
 
+    
     n_epochs = 10
     history = model.fit(X, y, batch_size=80, epochs=n_epochs, validation_split=0.2)
 
@@ -380,5 +349,5 @@ if __name__ == "__main__":
 
 
     import advection_test
-    advection_test.test_WENO5_JS()
+    #advection_test.test_WENO5_JS()
     advection_test.test_WENO_NN(model_path)
