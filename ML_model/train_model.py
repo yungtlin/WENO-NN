@@ -122,11 +122,11 @@ def get_model_SC(nf1=5, nf2=5):
     # Neural Network
     bias_init = tf.keras.initializers.RandomNormal(mean=0.0, stddev=0.005, seed=None)
 
-    l2_lambda = 6 + 10*np.random.rand()   
+    l2_lambda = 3
 
-    np1 = np.random.randint(3) + 3
-    np2 = np.random.randint(3) + 3
-    np3 = np.random.randint(3) + 3
+    np1 = 4 #np.random.randint(3) + 3
+    np2 = 4 #np.random.randint(3) + 3
+    np3 = 4 #np.random.randint(3) + 3
 
 
     NN_h1 = layers.Dense(np1, activation="relu",\
@@ -327,8 +327,8 @@ def plot_history(history):
 
 if __name__ == "__main__":
     folder = "training_data/"
-    #file_data = "data_github.npy"
     file_data = "data_github.npy"
+    #file_data = "data_github.npy"
     f_bar, y = get_dataX(folder+file_data)
     
     model, model_id, data_func = get_model_SC()

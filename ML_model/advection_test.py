@@ -296,8 +296,6 @@ def test_WENO_NN(model_path):
 def view_WENO_NN(model_path, T):
     model_info = read_model(model_path)
 
-    test_WENO5_JS()
-
     print("Testing... (sin)")
     err_sin, TV_sin = view_adv_NN(model_info, exact_sin, T)
     print()
@@ -307,9 +305,10 @@ def view_WENO_NN(model_path, T):
     print()
 
 if __name__ == "__main__":
-    model_folder = "test_batch/batch4/"
-    model_name = "model_batch_10.bin"
+    model_folder = "test_batch/git_3_lamb_6/"
+    model_name = "model_batch_11.bin"
     model_path = model_folder + model_name
 
+    test_WENO5_JS()
     view_WENO_NN(model_path, 50)
 

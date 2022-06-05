@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     Solver solver = Solver(nu, xlim, nx);
 
     // WENO-NN
-    solver.init_NN("../ML_model/model_batch_10.bin");
+    solver.init_NN("../ML_model/test_batch/git_3_lamb_3/model_batch_82.bin");
     // test_model.bin 1e-100
     // test_model_SC1.bin 1e-1
     solver.run(CFL, T);
