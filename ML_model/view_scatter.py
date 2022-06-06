@@ -176,8 +176,9 @@ if __name__ == "__main__":
     print("WENO5-JS error: %.3e"%(L2_norm(f_weno, y)))
 
     # Read from bin file:
-    model_path = "model_batch_10.bin"
-    model_id, weights, data_func = read_model(model_path)
+    model_folder = "test_batch/NN_3_lamb_3/"
+    model_name = "model_batch_26.bin"
+    model_id, weights, data_func = read_model(model_folder + model_name)
     X = data_func(f_bar)
 
     f_NN = model_predict(model_id, weights, X)
@@ -192,7 +193,7 @@ if __name__ == "__main__":
     plt.plot(x, x, "--k", linewidth=1)
     
     # plot setting
-    plt.title("Dataset: %s"%(data_name), fontsize=16)
+    plt.title("Dataset: %s"%("traing.npy"), fontsize=16)
     plt.ylabel(r"predicted ($\hat{f}$)", fontsize=12)
     plt.xlabel(r"exact ($f$)", fontsize=12)
     plt.ylim(lims)

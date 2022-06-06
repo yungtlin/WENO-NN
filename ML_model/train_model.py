@@ -124,9 +124,9 @@ def get_model_SC(nf1=5, nf2=5):
 
     l2_lambda = 3
 
-    np1 = 4 #np.random.randint(3) + 3
-    np2 = 4 #np.random.randint(3) + 3
-    np3 = 4 #np.random.randint(3) + 3
+    np1 = 3 #np.random.randint(3) + 3
+    np2 = 3 #np.random.randint(3) + 3
+    np3 = 3 #np.random.randint(3) + 3
 
 
     NN_h1 = layers.Dense(np1, activation="relu",\
@@ -318,7 +318,7 @@ def plot_history(history):
     plt.plot(x, mse_valid, "r", label="validation")
     
     plt.title("Training History", fontsize=16)
-    plt.ylabel("Mean square Error", fontsize=14)
+    plt.ylabel("Root-Mean-Square Error", fontsize=14)
     plt.xlabel("Epochs", fontsize=14)
     plt.legend(fontsize=14)
     plt.grid()
@@ -327,7 +327,7 @@ def plot_history(history):
 
 if __name__ == "__main__":
     folder = "training_data/"
-    file_data = "data_github.npy"
+    file_data = "test_SC_1.npy"
     #file_data = "data_github.npy"
     f_bar, y = get_dataX(folder+file_data)
     
@@ -339,7 +339,7 @@ if __name__ == "__main__":
     #keras.utils.plot_model(model, "test_WENO-NN.png")
 
     
-    n_epochs = 10
+    n_epochs = 50
     history = model.fit(X, y, batch_size=80, epochs=n_epochs, validation_split=0.2)
 
     plot_history(history)

@@ -98,7 +98,7 @@ if __name__ == "__main__":
 
 
     TV_info = np.array([err_list, TV_list])
-    TV_file = "git_4_lamb_3.npy"
+    TV_file = "git_3_lamb_24.npy"
     TV_path = model_folder + TV_file
 
     with open(TV_path, 'wb') as f:
