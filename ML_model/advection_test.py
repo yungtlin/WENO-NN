@@ -304,6 +304,66 @@ def view_WENO_NN(model_path, T):
     err_sq, TV_sq = view_adv_NN(model_info, exact_square, T)
     print()
 
+def cal_WENO_NN(model_path, T, wave_func):
+    model_info = read_model(model_path)
+    
+    # physics
+    L = 1 # periodic boundary f(x+L) = f(x)
+    c = 1
+
+    # simulation parameter
+    nI = 100
+    CFL = 0.5
+
+    # initialization
+    x = np.linspace(0, L, nI+1)[:-1]
+    u0 = wave_func(x, 0, c, L)
+
+    # simulation
+    u_NN = adv_RK3_NN(model_info, u0, x, c, CFL, T)
+
+    # evalution
+    u_exact = wave_func(x, T, c, L)
+    err =  rmse(u_NN, u_exact)
+    TV = compute_TV(u_NN)
+    print("error:", err)
+    print("TV:", TV, "\n")
+    
+    return x, u_NN
+
+def cal_WENO5_JS(T, wave_func):
+    # physics
+    L = 1 # periodic boundary f(x+L) = f(x)
+    c = 1
+
+    # simulation parameter
+    nI = 100
+    CFL = 0.5
+
+    # initialization
+    x = np.linspace(0, L, nI+1)[:-1]
+    u0 = wave_func(x, 0, c, L)
+
+    # simulation
+    u_sim = adv_RK3(WENO5_getf, u0, x, c, CFL, T)
+
+    # evalution
+    u_exact = wave_func(x, T, c, L)
+    err =  rmse(u_sim, u_exact)
+    TV = compute_TV(u_sim)
+    print("error:", err)
+    print("TV:", TV, "\n")
+
+    return x, u_sim
+
+def plot_exact(T, wave_func):
+    L = 1 # periodic boundary f(x+L) = f(x)
+    c = 1
+    x_exact =np.linspace(0, L, 1001)
+    u_exact = wave_func(x_exact, T, c, L)
+    plt.plot(x_exact, u_exact, "--k", label="exact")
+    
+
 if __name__ == "__main__":
     model_folder = "test_batch/git_3_lamb_3/"
     model_name = "model_batch_37.bin"
