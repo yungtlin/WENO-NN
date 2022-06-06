@@ -62,9 +62,6 @@ void WENO_NN::load_weights(FILE* fp){
             fread(__weights[idx_nn].v[j], sizeof(float), __weights[idx_nn].nx, fp);
         }
 
-        __weights[idx_nn].print_value();
-
-
         if (__nW[idx_nn] == 2){
             __bias[idx_nn].set(dim[1]);
             for (int j = 0; j < dim[1]; j++){

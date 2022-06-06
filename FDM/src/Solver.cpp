@@ -62,7 +62,6 @@ void Solver::run(value_type CFL, value_type T){
     int iteration = 0;
     value_type dt; // time step size
 
-    printf("hi");
     while(__t < T){ 
         dt = get_dt();
         // close to the target time
@@ -76,7 +75,8 @@ void Solver::run(value_type CFL, value_type T){
         __t += dt;
         iteration++;
         printf("Iteration: %i, t: %f \n", iteration, __t);
-    } 
+    }
+    printf("\n");
 }
 
 
